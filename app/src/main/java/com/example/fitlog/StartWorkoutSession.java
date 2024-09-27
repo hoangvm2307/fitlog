@@ -16,6 +16,8 @@ import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
+import com.google.android.material.button.MaterialButton;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +28,12 @@ public class StartWorkoutSession extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_start_workout_session, container, false);
+
+        MaterialButton btnStartEmptyWorkout = view.findViewById(R.id.btnStartEmptyWorkout);
+        btnStartEmptyWorkout.setOnClickListener(v -> {
+            // TODO: Implement empty workout start logic
+            Toast.makeText(requireContext(), "Starting an empty workout", Toast.LENGTH_SHORT).show();
+        });
 
         List<Template> templates = getMockTemplates();
         LinearLayout templateContainer = view.findViewById(R.id.templateContainer);
