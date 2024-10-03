@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import android.widget.PopupMenu;
 import android.view.MenuItem;
 
-public class ExerciseList extends Fragment {
+public class ExerciseList extends Fragment implements ExerciseAdapter.OnExerciseClickListener {
 
     private RecyclerView recyclerView;
     private ExerciseAdapter adapter;
@@ -39,7 +39,7 @@ public class ExerciseList extends Fragment {
         exerciseDAO = new ExerciseDAO(getContext());
         allExercises = exerciseDAO.getAllExercises();
 
-        adapter = new ExerciseAdapter(allExercises);
+        adapter = new ExerciseAdapter(allExercises, this);
         recyclerView.setAdapter(adapter);
 
         bodyPartButton = view.findViewById(R.id.bodyPartButton);
@@ -47,7 +47,11 @@ public class ExerciseList extends Fragment {
         
         return view;
     }
-
+    @Override
+    public void onExerciseClick(Exercise exercise) {
+        ExerciseDetailsDialogFragment detailsFragment = ExerciseDetailsDialogFragment.newInstance(exercise);
+        detailsFragment.show(getParentFragmentManager(), "exercise_details");
+    }
     private void showBodyPartMenu() {
         PopupMenu popup = new PopupMenu(getContext(), bodyPartButton);
         popup.getMenu().add("All");

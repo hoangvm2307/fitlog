@@ -29,4 +29,5 @@
     <style name="TextAppearance.App.BottomNavigationView.Inactive" parent="TextAppearance.MaterialComponents.Caption">
         <item name="android:textSize">12sp</item>
     </style>
+
 </resources>

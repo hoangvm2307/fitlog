@@ -1,6 +1,9 @@
 package com.example.fitlog.model;
 
-public class Exercise {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Exercise implements Parcelable {
     private int id;
     private int userId;
     private String name;
@@ -8,8 +11,60 @@ public class Exercise {
     private String bodypart;
     private String category;
     private String visibility;
-    private String imageName; // Thêm trường mới này
+    private String imageName;
 
+    public Exercise(int id, int userId, String name, String instruction, String bodypart, String category, String visibility, String imageName) {
+        this.id = id;
+        this.userId = userId;
+        this.name = name;
+        this.instruction = instruction;
+        this.bodypart = bodypart;
+        this.category = category;
+        this.visibility = visibility;
+        this.imageName = imageName;
+    }
+
+    protected Exercise(Parcel in) {
+        id = in.readInt();
+        userId = in.readInt();
+        name = in.readString();
+        instruction = in.readString();
+        bodypart = in.readString();
+        category = in.readString();
+        visibility = in.readString();
+        imageName = in.readString();
+    }
+
+    public static final Creator<Exercise> CREATOR = new Creator<Exercise>() {
+        @Override
+        public Exercise createFromParcel(Parcel in) {
+            return new Exercise(in);
+        }
+
+        @Override
+        public Exercise[] newArray(int size) {
+            return new Exercise[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeInt(userId);
+        dest.writeString(name);
+        dest.writeString(instruction);
+        dest.writeString(bodypart);
+        dest.writeString(category);
+        dest.writeString(visibility);
+        dest.writeString(imageName);
+    }
+
+    // Existing getters and setters...
     public int getId() {
         return id;
     }
@@ -66,19 +121,6 @@ public class Exercise {
         this.visibility = visibility;
     }
 
-    // Cập nhật constructor
-    public Exercise(int id, int userId, String name, String instruction, String bodypart, String category, String visibility, String imageName) {
-        this.id = id;
-        this.userId = userId;
-        this.name = name;
-        this.instruction = instruction;
-        this.bodypart = bodypart;
-        this.category = category;
-        this.visibility = visibility;
-        this.imageName = imageName;
-    }
-
-    // Thêm getter và setter cho imageName
     public String getImageName() {
         return imageName;
     }
@@ -86,13 +128,4 @@ public class Exercise {
     public void setImageName(String imageName) {
         this.imageName = imageName;
     }
-
-    // Getters and setters
-    // ... (implement getters and setters for all fields)
-
-//    public int getImageResourceId() {
-//        // Giả sử tên file hình ảnh trùng với tên bài tập (chuyển thành chữ thường và thay khoảng trắng bằng gạch dưới)
-//        String imageName = name.toLowerCase().replace(" ", "_");
-//        return context.getResources().getIdentifier(imageName, "drawable", context.getPackageName());
-//    }
 }
