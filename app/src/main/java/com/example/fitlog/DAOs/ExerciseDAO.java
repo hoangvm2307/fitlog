@@ -24,16 +24,24 @@ public class ExerciseDAO {
 
     public long insertExercise(Exercise exercise) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("user_id", exercise.getUserId());
-        values.put("name", exercise.getName());
-        values.put("instruction", exercise.getInstruction());
-        values.put("bodypart", exercise.getBodypart());
-        values.put("category", exercise.getCategory());
-        values.put("visibility", exercise.getVisibility());
-        values.put("image_name", exercise.getImageName()); // Thêm dòng này
+        long newRowId = -1;
+        db.beginTransaction();
+        try {
+            ContentValues values = new ContentValues();
+            values.put("user_id", exercise.getUserId());
+            values.put("name", exercise.getName());
+            values.put("instruction", exercise.getInstruction());
+            values.put("bodypart", exercise.getBodypart());
+            values.put("category", exercise.getCategory());
+            values.put("visibility", exercise.getVisibility());
+            values.put("image_name", exercise.getImageName());
 
-        return db.insert("exercises", null, values);
+            newRowId = db.insert("exercises", null, values);
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        return newRowId;
     }
 
     public List<Exercise> getAllExercises() {

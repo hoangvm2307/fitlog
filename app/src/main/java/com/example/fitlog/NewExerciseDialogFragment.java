@@ -122,16 +122,21 @@ public class NewExerciseDialogFragment extends DialogFragment {
         String name = nameEditText.getText().toString();
 
         if (!name.isEmpty()) {
-            Exercise newExercise = new Exercise(1, 1, name, " ", bodyPart ,"", "", "");
+            Exercise newExercise = new Exercise(1, 1, name, " ", bodyPart, "", "", "");
             ExerciseDAO exerciseDAO = new ExerciseDAO(getContext());
-            exerciseDAO.insertExercise(newExercise);
+            long result = exerciseDAO.insertExercise(newExercise);
 
-            Toast.makeText(requireContext(), "Exercise: " + newExercise.getName(), Toast.LENGTH_SHORT).show();
-            dismiss();
-            // Cập nhật danh sách bài tập trong ExerciseList
-            if (getParentFragment() instanceof ExerciseList) {
-                ((ExerciseList) getParentFragment()).updateExerciseList();
+            if (result != -1) {
+                Toast.makeText(requireContext(), "Exercise added: " + newExercise.getName(), Toast.LENGTH_SHORT).show();
+                if (listener != null) {
+                    listener.onExerciseAdded();
+                }
+                dismiss();
+            } else {
+                Toast.makeText(requireContext(), "Failed to add exercise", Toast.LENGTH_SHORT).show();
             }
+        } else {
+            Toast.makeText(requireContext(), "Please enter exercise name", Toast.LENGTH_SHORT).show();
         }
     }
 

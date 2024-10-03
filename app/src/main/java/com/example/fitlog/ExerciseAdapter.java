@@ -47,7 +47,8 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.Exerci
     }
 
     public void updateExercises(List<Exercise> newExercises) {
-        this.exercises = newExercises;
+        this.exercises.clear();
+        this.exercises.addAll(newExercises);
         notifyDataSetChanged();
     }
 

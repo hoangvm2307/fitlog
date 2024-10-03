@@ -113,8 +113,9 @@ public class ExerciseList extends Fragment implements ExerciseAdapter.OnExercise
     }
 
     public void updateExerciseList() {
+//        Log.d("ExerciseList", "updateExerciseList called");
         allExercises = exerciseDAO.getAllExercises();
         adapter.updateExercises(allExercises);
-        adapter.notifyDataSetChanged(); // Thêm dòng này để đảm bảo RecyclerView được cập nhật
+        adapter.notifyDataSetChanged();
     }
 }
