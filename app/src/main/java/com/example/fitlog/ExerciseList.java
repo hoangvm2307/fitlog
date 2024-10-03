@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,6 +24,7 @@ public class ExerciseList extends Fragment implements ExerciseAdapter.OnExercise
     private ExerciseDAO exerciseDAO;
     private List<Exercise> allExercises;
     private Button bodyPartButton;
+    private TextView newButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -44,6 +46,9 @@ public class ExerciseList extends Fragment implements ExerciseAdapter.OnExercise
 
         bodyPartButton = view.findViewById(R.id.bodyPartButton);
         bodyPartButton.setOnClickListener(v -> showBodyPartMenu());
+        
+        newButton = view.findViewById(R.id.newButton);
+        newButton.setOnClickListener(v -> openNewExerciseDialog());
         
         return view;
     }
@@ -94,5 +99,22 @@ public class ExerciseList extends Fragment implements ExerciseAdapter.OnExercise
         }
         adapter.updateExercises(filteredList);
         bodyPartButton.setText(bodyPart);
+    }
+
+    private void openNewExerciseDialog() {
+        NewExerciseDialogFragment newExerciseFragment = new NewExerciseDialogFragment();
+        newExerciseFragment.setOnExerciseAddedListener(new NewExerciseDialogFragment.OnExerciseAddedListener() {
+            @Override
+            public void onExerciseAdded() {
+                updateExerciseList();
+            }
+        });
+        newExerciseFragment.show(getParentFragmentManager(), "new_exercise");
+    }
+
+    public void updateExerciseList() {
+        allExercises = exerciseDAO.getAllExercises();
+        adapter.updateExercises(allExercises);
+        adapter.notifyDataSetChanged(); // Thêm dòng này để đảm bảo RecyclerView được cập nhật
     }
 }

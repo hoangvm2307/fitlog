@@ -23,7 +23,11 @@ public class Exercise implements Parcelable {
         this.visibility = visibility;
         this.imageName = imageName;
     }
-
+    public Exercise(String name, String bodypart, String category){
+        this.name = name;
+        this.bodypart = bodypart;
+        this.category = category;
+    }
     protected Exercise(Parcel in) {
         id = in.readInt();
         userId = in.readInt();

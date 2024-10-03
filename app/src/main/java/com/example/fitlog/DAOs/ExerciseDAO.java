@@ -5,8 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.fitlog.DatabaseHelper;
+import com.example.fitlog.MainActivity;
 import com.example.fitlog.model.Exercise;
 
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ public class ExerciseDAO {
         values.put("category", exercise.getCategory());
         values.put("visibility", exercise.getVisibility());
         values.put("image_name", exercise.getImageName()); // Thêm dòng này
+
         return db.insert("exercises", null, values);
     }
 
@@ -100,6 +103,30 @@ public class ExerciseDAO {
             values.put("image_name", exercise[4]); // Thêm tên hình ảnh
             db.insert("exercises", null, values);
         }
+    }
+
+    public boolean addExercise(Exercise exercise) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            ContentValues values = new ContentValues();
+            values.put("user_id", exercise.getUserId());
+            values.put("name", exercise.getName());
+            values.put("instruction", exercise.getInstruction());
+            values.put("bodypart", exercise.getBodypart());
+            values.put("category", exercise.getCategory());
+            values.put("visibility", exercise.getVisibility());
+            values.put("image_name", exercise.getImageName()); // Thêm dòng này
+
+            long result = db.insert("exercises", null, values);
+            if (result != -1) {
+                db.setTransactionSuccessful();
+                return true;
+            }
+        } finally {
+            db.endTransaction();
+        }
+        return false;
     }
 
     // Các phương thức khác giữ nguyên
