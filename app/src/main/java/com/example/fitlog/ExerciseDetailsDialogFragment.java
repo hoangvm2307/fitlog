@@ -1,11 +1,14 @@
 package com.example.fitlog;
 
 import android.app.Dialog;
+import android.media.Image;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -15,6 +18,8 @@ import com.example.fitlog.model.Exercise;
 import com.google.android.material.tabs.TabLayout;
 import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayoutMediator;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 
 public class ExerciseDetailsDialogFragment extends DialogFragment {
     private static final String ARG_EXERCISE = "exercise";
@@ -32,6 +37,7 @@ public class ExerciseDetailsDialogFragment extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setStyle(DialogFragment.STYLE_NO_TITLE, R.style.FullScreenDialogStyle);
         if (getArguments() != null) {
             exercise = getArguments().getParcelable(ARG_EXERCISE);
         }
@@ -45,31 +51,28 @@ public class ExerciseDetailsDialogFragment extends DialogFragment {
         return dialog;
     }
 
+    @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_exercise_details, container, false);
 
-        ImageView exerciseImage = view.findViewById(R.id.exerciseImage);
         TextView exerciseName = view.findViewById(R.id.exerciseName);
-        TextView instructionsText = view.findViewById(R.id.instructionsText);
         TextView editButton = view.findViewById(R.id.editButton);
         TabLayout tabLayout = view.findViewById(R.id.tabLayout);
         ViewPager2 viewPager = view.findViewById(R.id.viewPager);
+        ImageButton closeButton = view.findViewById(R.id.closeButton);
 
         if (exercise != null) {
-            int resourceId = getResources().getIdentifier(
-                    exercise.getImageName(), "drawable", getContext().getPackageName());
-            if (resourceId != 0) {
-                exerciseImage.setImageResource(resourceId);
-            }
             exerciseName.setText(exercise.getName());
-            instructionsText.setText(exercise.getInstruction());
         }
 
         editButton.setOnClickListener(v -> {
             // Xử lý sự kiện khi nhấn nút Edit
         });
 
+        closeButton.setOnClickListener(v -> {
+            dismiss();
+        });
         // Thiết lập ViewPager và TabLayout
         String[] tabTitles = new String[]{"About", "History", "Charts", "Records"};
         viewPager.setAdapter(new ExerciseDetailsPagerAdapter(this, exercise));
@@ -88,7 +91,7 @@ public class ExerciseDetailsDialogFragment extends DialogFragment {
             int width = ViewGroup.LayoutParams.MATCH_PARENT;
             int height = ViewGroup.LayoutParams.MATCH_PARENT;
             dialog.getWindow().setLayout(width, height);
-            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         }
     }
 }

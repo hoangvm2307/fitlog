@@ -20,11 +20,11 @@ public class ExerciseDetailsPagerAdapter extends FragmentStateAdapter {
             case 0:
                 return ExerciseAboutFragment.newInstance(exercise);
             case 1:
-                return ExerciseHistoryFragment.newInstance(exercise);
+//                return ExerciseHistoryFragment.newInstance(exercise);
             case 2:
-                return ExerciseChartsFragment.newInstance(exercise);
+//                return ExerciseChartsFragment.newInstance(exercise);
             case 3:
-                return ExerciseRecordsFragment.newInstance(exercise);
+//                return ExerciseRecordsFragment.newInstance(exercise);
             default:
                 return new Fragment();
         }

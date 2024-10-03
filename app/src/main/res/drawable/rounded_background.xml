@@ -2,5 +2,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@color/material_dynamic_neutral90" />
-    <corners android:radius="4dp" /> <!-- Điều chỉnh giá trị này để thay đổi mức độ bo tròn -->
+    <corners android:radius="16dp" /> <!-- Điều chỉnh giá trị này để thay đổi mức độ bo tròn -->
 </shape>

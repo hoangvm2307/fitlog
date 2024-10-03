@@ -51,7 +51,7 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.Exerci
         notifyDataSetChanged();
     }
 
-    class ExerciseViewHolder extends RecyclerView.ViewHolder {
+class ExerciseViewHolder extends RecyclerView.ViewHolder {
         ImageView exerciseImage;
         TextView exerciseName;
         TextView bodyPart;
