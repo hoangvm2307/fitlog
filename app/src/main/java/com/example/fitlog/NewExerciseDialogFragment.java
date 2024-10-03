@@ -84,6 +84,28 @@ public class NewExerciseDialogFragment extends DialogFragment {
                 android.R.layout.simple_spinner_dropdown_item);
 
         // Tương tự cho categoryAdapter
+
+        // Khởi tạo adapters
+        categoryAdapter = new ArrayAdapter<String>(requireContext(),
+                android.R.layout.simple_spinner_item, categoryItems) {
+            @Override
+            public boolean isEnabled(int position) {
+                return position != 0;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView,
+                                        @NonNull ViewGroup parent) {
+                View view = super.getDropDownView(position, convertView, parent);
+                TextView tv = (TextView) view;
+                tv.setTextColor(position == 0 ? Color.GRAY : Color.BLACK);
+                return view;
+            }
+        };
+        categoryAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+
+        // Tương tự cho categoryAdapter
     }
     @Nullable
     @Override
@@ -111,7 +133,14 @@ public class NewExerciseDialogFragment extends DialogFragment {
             @Override
             public void onNothingSelected(AdapterView<?> adapterView){}
         });
-
+        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l){
+                category = adapterView.getItemAtPosition(position).toString();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView){}
+        });
         // Gán sự kiện
         saveButton.setOnClickListener(v -> saveNewExercise());
         closeButton.setOnClickListener(v -> dismiss());
@@ -122,7 +151,7 @@ public class NewExerciseDialogFragment extends DialogFragment {
         String name = nameEditText.getText().toString();
 
         if (!name.isEmpty()) {
-            Exercise newExercise = new Exercise(1, 1, name, " ", bodyPart, "", "", "");
+            Exercise newExercise = new Exercise(1, 1, name, " ", bodyPart, category, "", "");
             ExerciseDAO exerciseDAO = new ExerciseDAO(getContext());
             long result = exerciseDAO.insertExercise(newExercise);
 
