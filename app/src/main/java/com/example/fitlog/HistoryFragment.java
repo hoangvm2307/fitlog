@@ -31,10 +31,7 @@ public class HistoryFragment extends Fragment {
         dbHelper = DatabaseHelper.getInstance(getContext());
         
         // Check if the database is empty before seeding
-        if (isDatabaseEmpty()) {
-            dbHelper.seedData();
-        }
-        
+
         loadWorkoutHistory();
 
         return view;

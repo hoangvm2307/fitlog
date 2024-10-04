@@ -46,10 +46,10 @@ public class ExerciseList extends Fragment implements ExerciseAdapter.OnExercise
 
         bodyPartButton = view.findViewById(R.id.bodyPartButton);
         bodyPartButton.setOnClickListener(v -> showBodyPartMenu());
-        
+
         newButton = view.findViewById(R.id.newButton);
         newButton.setOnClickListener(v -> openNewExerciseDialog());
-        
+
         return view;
     }
     @Override
