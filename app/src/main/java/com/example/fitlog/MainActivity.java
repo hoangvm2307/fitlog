@@ -1,5 +1,6 @@
 package com.example.fitlog;
 
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -22,10 +23,12 @@ public class MainActivity extends BaseActivity {
             // Xử lý lỗi nếu có
             Toast.makeText(this, "Lỗi khi khởi tạo cơ sở dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
+        if (isDatabaseEmpty()) {
+            dbHelper.seedData();
+        }
 
         DatabaseManager.getInstance(this).open();
         userDAO = new UserDAO(this);
-        userDAO.addSampleUsers();
 
         // Set StartWorkoutSession as the default screen
         if (savedInstanceState == null) {
@@ -38,7 +41,14 @@ public class MainActivity extends BaseActivity {
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setSelectedItemId(R.id.navigation_start_workout);
     }
-
+    private boolean isDatabaseEmpty() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM users", null);
+        cursor.moveToFirst();
+        int count = cursor.getInt(0);
+        cursor.close();
+        return count == 0;
+    }
     @Override
     protected int getLayoutResourceId() {
         return R.layout.activity_main;

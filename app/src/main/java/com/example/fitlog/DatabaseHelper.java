@@ -248,33 +248,79 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         userValues.put("password", "password123");
         long userId = db.insert("users", null, userValues);
 
-        // Seed exercises
-        String[][] exerciseData = {
-            {"Squat", "Legs", "Strength", "Stand with feet shoulder-width apart, lower your body as if sitting back into a chair, keeping your chest up and knees over your toes."},
-            {"Bench Press", "Chest", "Strength", "Lie on a bench, lower the bar to your chest, then push it back up to the starting position."},
-            {"Deadlift", "Back", "Strength", "Stand with feet hip-width apart, bend at your hips and knees to lower your hands to the bar, then lift by extending your hips and knees."},
-            {"Shoulder Press", "Shoulders", "Strength", "Start with the bar at shoulder level, press it overhead until your arms are fully extended."},
-            {"Pull-ups", "Back", "Strength", "Hang from a bar with palms facing away from you, pull your body up until your chin is over the bar."},
-            {"Lunges", "Legs", "Strength", "Step forward with one leg, lowering your hips until both knees are bent at about 90-degree angles."},
-            {"Dumbbell Rows", "Back", "Strength", "Bend at your hips and knees, and lift a dumbbell to the side of your chest."},
-            {"Plank", "Core", "Strength", "Hold a push-up position with your forearms on the ground, keeping your body in a straight line."},
-            {"Bicep Curls", "Arms", "Strength", "Hold dumbbells at your sides, curl them up towards your shoulders, then lower back down."},
-            {"Tricep Dips", "Arms", "Strength", "Using parallel bars or a bench, lower your body by bending your elbows, then push back up."}
-        };
+        // Seed workout templates
+        String[] templateNames = {"Full Body Workout", "Upper Body", "Lower Body", "Core Strength"};
+        for (String templateName : templateNames) {
+            ContentValues templateValues = new ContentValues();
+            templateValues.put("user_id", userId);
+            templateValues.put("name", templateName);
+            templateValues.put("description", "A sample " + templateName + " workout");
+            templateValues.put("visibility", "public");
+            long templateId = db.insert("workout_templates", null, templateValues);
 
-        for (String[] exercise : exerciseData) {
-            ContentValues exerciseValues = new ContentValues();
-            exerciseValues.put("user_id", userId);
-            exerciseValues.put("name", exercise[0]);
-            exerciseValues.put("bodypart", exercise[1]);
-            exerciseValues.put("category", exercise[2]);
-            exerciseValues.put("instruction", exercise[3]);
-            exerciseValues.put("visibility", "public");
-            db.insert("exercises", null, exerciseValues);
+            // Seed exercises with image_name
+            String[][] exerciseData = {
+                    {"Squat", "Full Body", "Strength", "Perform the Squat with proper form", "squat"},
+                    {"Bench Press", "Full Body", "Strength", "Perform the Bench Press with proper form", "bench_press"},
+                    {"Deadlift", "Full Body", "Strength", "Perform the Deadlift with proper form", "deadlift"},
+                    {"Shoulder Press", "Full Body", "Strength", "Perform the Shoulder Press with proper form", "shoulder_press"},
+                    {"Pull-ups", "Full Body", "Strength", "Perform the Pull-ups with proper form", "pull_ups"}
+            };
+
+            for (String[] exercise : exerciseData) {
+                ContentValues exerciseValues = new ContentValues();
+                exerciseValues.put("user_id", userId);
+                exerciseValues.put("name", exercise[0]);
+                exerciseValues.put("instruction", exercise[3]);
+                exerciseValues.put("bodypart", exercise[1]);
+                exerciseValues.put("category", exercise[2]);
+                exerciseValues.put("visibility", "public");
+                exerciseValues.put("image_name", exercise[4]); // Thêm cột image_name
+                long exerciseId = db.insert("exercises", null, exerciseValues);
+
+                // Link exercise to template
+                ContentValues templateExerciseValues = new ContentValues();
+                templateExerciseValues.put("template_id", templateId);
+                templateExerciseValues.put("exercise_id", exerciseId);
+                templateExerciseValues.put("exercise_order", random.nextInt(5) + 1);
+                db.insert("template_exercises", null, templateExerciseValues);
+            }
+
+            // Seed workout sessions (2-4 workouts per week for the past 8 weeks)
+            long currentTime = System.currentTimeMillis();
+            for (int week = 0; week < 8; week++) {
+                int workoutsThisWeek = random.nextInt(3) + 2; // 2-4 workouts per week
+                for (int workout = 0; workout < workoutsThisWeek; workout++) {
+                    long startTime = currentTime - (week * 7 + random.nextInt(7)) * 24 * 60 * 60 * 1000L;
+                    long endTime = startTime + (45 + random.nextInt(46)) * 60 * 1000L; // 45-90 minute workout
+
+                    ContentValues sessionValues = new ContentValues();
+                    sessionValues.put("user_id", userId);
+                    sessionValues.put("template_id", templateId);
+                    sessionValues.put("start_time", startTime);
+                    sessionValues.put("end_time", endTime);
+                    long sessionId = db.insert("workout_sessions", null, sessionValues);
+
+                    // Seed exercise sets
+                    for (int j = 0; j < 5; j++) {
+                        ContentValues setValues = new ContentValues();
+                        setValues.put("session_id", sessionId);
+                        setValues.put("exercise_id", random.nextInt(5) + 1);
+                        setValues.put("set_number", j + 1);
+                        setValues.put("weight", (random.nextInt(20) + 1) * 5); // Weight in multiples of 5kg, from 5 to 100kg
+                        int reps;
+                        int repChoice = random.nextInt(10);
+                        if (repChoice < 4) reps = 10;
+                        else if (repChoice < 8) reps = 12;
+                        else reps = random.nextInt(13) + 4; // 4-16 rep range for variety
+                        setValues.put("reps", reps);
+                        db.insert("exercise_sets", null, setValues);
+                    }
+                }
+            }
         }
-
-        // ... phần còn lại của phương thức seedData() ...
     }
+
 
     public String getExerciseName(int exerciseId) {
         SQLiteDatabase db = this.getReadableDatabase();
