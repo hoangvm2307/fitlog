@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -385,4 +386,57 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return workoutsPerWeek;
     }
+
+    public Map<String, Integer> getWorkoutCountByWeek() {
+        Map<String, Integer> workoutsByWeek = new TreeMap<>(Collections.reverseOrder());
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT * FROM workout_sessions ORDER BY start_time DESC";
+        Cursor cursor = db.rawQuery(query, null);
+
+        Log.d("DatabaseHelper", "Cursor count: " + cursor.getCount());
+
+        if (cursor.moveToFirst()) {
+            do {
+                int startTimeIndex = cursor.getColumnIndex("start_time");
+
+                if (startTimeIndex != -1) {
+                    long startTime = cursor.getLong(startTimeIndex);
+                    Date startDate = new Date(startTime);
+
+                    // Sử dụng Calendar để lấy tuần và năm
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(startDate);
+
+                    int weekOfYear = calendar.get(Calendar.WEEK_OF_YEAR);
+                    int year = calendar.get(Calendar.YEAR);
+
+                    // Đặt ngày của Calendar về đầu tuần (thường là Chủ Nhật hoặc Thứ Hai)
+                    calendar.set(Calendar.WEEK_OF_YEAR, weekOfYear);
+                    calendar.set(Calendar.YEAR, year);
+                    calendar.set(Calendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek());
+
+                    // Format ngày bắt đầu của tuần dưới dạng "dd/MM"
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM", Locale.getDefault());
+                    String startOfWeek = dateFormat.format(calendar.getTime());
+
+                    // Tạo khóa theo ngày đầu tuần
+                    String weekKey = startOfWeek;
+
+                    // Nếu tuần chưa tồn tại trong map, thêm mới với giá trị là 0
+                    if (!workoutsByWeek.containsKey(weekKey)) {
+                        workoutsByWeek.put(weekKey, 0);
+                    }
+
+                    // Tăng số lượng workout của tuần đó lên 1
+                    workoutsByWeek.put(weekKey, workoutsByWeek.get(weekKey) + 1);
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        Log.d("DatabaseHelper", "Total weeks: " + workoutsByWeek.size());
+        return workoutsByWeek;
+    }
+
 }
