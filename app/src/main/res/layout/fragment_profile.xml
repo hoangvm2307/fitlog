@@ -105,11 +105,11 @@
                         android:src="@drawable/more_vert_24px"/>
                 </LinearLayout>
 
-                <!-- Add a placeholder for the chart -->
-                <View
+                <!-- Thay thế phần View placeholder bằng BarChart -->
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/workoutsPerWeekChart"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:background="#EEEEEE"/>
+                    android:layout_height="200dp"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 

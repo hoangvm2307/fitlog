@@ -20,6 +20,7 @@ import android.content.ContentValues;
 import android.util.Log;
 
 import java.util.Random;
+import java.util.LinkedHashMap;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static DatabaseHelper instance;
@@ -353,5 +354,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return name;
+    }
+
+    public Map<String, Integer> getWorkoutsPerWeek() {
+        Map<String, Integer> workoutsPerWeek = new LinkedHashMap<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT strftime('%W', datetime(start_time/1000, 'unixepoch')) as week, COUNT(*) as count " +
+                       "FROM workout_sessions " +
+                       "WHERE start_time >= datetime('now', '-8 weeks') " +
+                       "GROUP BY week " +
+                       "ORDER BY week DESC " +
+                       "LIMIT 8";
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                int weekIndex = cursor.getColumnIndex("week");
+                int countIndex = cursor.getColumnIndex("count");
+                
+                if (weekIndex != -1 && countIndex != -1) {
+                    String week = "W" + cursor.getString(weekIndex);
+                    int count = cursor.getInt(countIndex);
+                    workoutsPerWeek.put(week, count);
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return workoutsPerWeek;
     }
 }
