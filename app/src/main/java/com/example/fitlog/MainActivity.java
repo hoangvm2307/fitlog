@@ -25,10 +25,7 @@ public class MainActivity extends BaseActivity {
             // Xử lý lỗi nếu có
             Toast.makeText(this, "Lỗi khi khởi tạo cơ sở dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
-        if (isDatabaseEmpty()) {
-            dbHelper.seedData();
-        }
-
+       
         DatabaseManager.getInstance(this).open();
         userDAO = new UserDAO(this);
 
