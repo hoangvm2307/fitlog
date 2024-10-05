@@ -50,7 +50,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupWorkoutsPerWeekChart() {
-        Map<String, Integer> workoutsPerWeek = dbHelper.getWorkoutsPerWeek();
+        Map<String, Integer> workoutsPerWeek = dbHelper.getWorkoutCountByWeek();
         List<BarEntry> entries = new ArrayList<>();
         List<String> labels = new ArrayList<>();
 
@@ -62,7 +62,7 @@ public class ProfileFragment extends Fragment {
         }
 
         BarDataSet dataSet = new BarDataSet(entries, "Workouts");
-        dataSet.setColor(Color.BLUE);
+        dataSet.setColor(Color.parseColor("#C392FD"));
         dataSet.setValueTextColor(Color.BLACK);
         dataSet.setValueTextSize(12f);
 
