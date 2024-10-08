@@ -1,6 +1,7 @@
 package com.example.fitlog;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -154,6 +155,10 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                         (int) (8 * itemView.getResources().getDisplayMetrics().density)));
                 exerciseListContainer.addView(spacer);
             }
+
+            itemView.setOnClickListener(v -> {
+                ((MainActivity) itemView.getContext()).navigateToWorkoutDetail(workout.getId());
+            });
         }
 
         private String getSessionTime(Date startTime, Date endTime) {

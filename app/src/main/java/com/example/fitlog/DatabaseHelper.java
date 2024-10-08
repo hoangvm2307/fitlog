@@ -308,4 +308,30 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return name;
     }
+
+    // Add these methods to the DatabaseHelper class
+
+    public Workout getWorkoutById(int workoutId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Workout workout = null;
+
+        String query = "SELECT * FROM workout_sessions WHERE id = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(workoutId)});
+
+        if (cursor.moveToFirst()) {
+            int userId = cursor.getInt(cursor.getColumnIndex("user_id"));
+            int templateId = cursor.getInt(cursor.getColumnIndex("template_id"));
+            long startTime = cursor.getLong(cursor.getColumnIndex("start_time"));
+            long endTime = cursor.getLong(cursor.getColumnIndex("end_time"));
+
+            workout = new Workout(workoutId, userId, templateId, new Date(startTime), new Date(endTime));
+            workout.setExerciseSets(getExerciseSetsForWorkout(workoutId));
+        }
+
+        cursor.close();
+        return workout;
+    }
+
+
+
 }
