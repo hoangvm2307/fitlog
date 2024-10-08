@@ -16,8 +16,10 @@ import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
+import com.example.fitlog.model.Template;
 import com.google.android.material.button.MaterialButton;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +67,7 @@ public class StartWorkoutSession extends Fragment {
                 continue;
             }
 
-            title.setText(template.getTitle());
+            title.setText(template.getName());
             description.setText(template.getDescription());
             lastUsed.setText(template.getLastUsed());
 
@@ -107,7 +109,7 @@ public class StartWorkoutSession extends Fragment {
                 continue;
             }
 
-            title.setText(template.getTitle());
+            title.setText(template.getName());
             description.setText(template.getDescription());
             lastUsed.setText(template.getLastUsed());
 
@@ -128,17 +130,35 @@ public class StartWorkoutSession extends Fragment {
 
     private List<Template> getMockTemplates() {
         List<Template> templates = new ArrayList<>();
-        templates.add(new Template("Upper Body Workout", "Chest, shoulders, and arms exercises", "3 days ago"));
-        templates.add(new Template("Lower Body Workout", "Legs and glutes exercises", "1 week ago"));
+        Template upperBody = new Template(1, 1, "Upper Body Workout", "Chest, shoulders, and arms exercises", "private", LocalDateTime.now().minusDays(3));
+        upperBody.setLastUsed(LocalDateTime.now().minusDays(3));
+        templates.add(upperBody);
+
+        Template lowerBody = new Template(2, 1, "Lower Body Workout", "Legs and glutes exercises", "private", LocalDateTime.now().minusWeeks(1));
+        lowerBody.setLastUsed(LocalDateTime.now().minusWeeks(1));
+        templates.add(lowerBody);
+
         return templates;
     }
 
     private List<Template> getExampleTemplates() {
         List<Template> templates = new ArrayList<>();
-        templates.add(new Template("Full Body Workout", "Complete body workout for beginners", "5 days ago"));
-        templates.add(new Template("HIIT Cardio", "High-intensity interval training", "2 days ago"));
-        templates.add(new Template("Core Strength", "Abdominal and lower back exercises", "1 day ago"));
-        templates.add(new Template("Yoga Flow", "Relaxing yoga session", "4 days ago"));
+        Template fullBody = new Template(3, 0, "Full Body Workout", "Complete body workout for beginners", "public", LocalDateTime.now().minusDays(5));
+        fullBody.setLastUsed(LocalDateTime.now().minusDays(5));
+        templates.add(fullBody);
+
+        Template hiit = new Template(4, 0, "HIIT Cardio", "High-intensity interval training", "public", LocalDateTime.now().minusDays(2));
+        hiit.setLastUsed(LocalDateTime.now().minusDays(2));
+        templates.add(hiit);
+
+        Template core = new Template(5, 0, "Core Strength", "Abdominal and lower back exercises", "public", LocalDateTime.now().minusDays(1));
+        core.setLastUsed(LocalDateTime.now().minusDays(1));
+        templates.add(core);
+
+        Template yoga = new Template(6, 0, "Yoga Flow", "Relaxing yoga session", "public", LocalDateTime.now().minusDays(4));
+        yoga.setLastUsed(LocalDateTime.now().minusDays(4));
+        templates.add(yoga);
+
         return templates;
     }
 
@@ -148,13 +168,13 @@ public class StartWorkoutSession extends Fragment {
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.action_edit) {
-                Toast.makeText(requireContext(), "Edit " + template.getTitle(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Edit " + template.getName(), Toast.LENGTH_SHORT).show();
                 return true;
             } else if (itemId == R.id.action_duplicate) {
-                Toast.makeText(requireContext(), "Duplicate " + template.getTitle(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Duplicate " + template.getName(), Toast.LENGTH_SHORT).show();
                 return true;
             } else if (itemId == R.id.action_delete) {
-                Toast.makeText(requireContext(), "Delete " + template.getTitle(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Delete " + template.getName(), Toast.LENGTH_SHORT).show();
                 return true;
             }
             return false;

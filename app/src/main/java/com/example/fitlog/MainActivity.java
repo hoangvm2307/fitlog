@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.fragment.app.Fragment;
+
 import com.example.fitlog.DAOs.UserDAO;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -55,5 +57,22 @@ public class MainActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         DatabaseManager.getInstance(this).close();
+    }
+
+    public void navigateToWorkoutDetail(int workoutId) {
+        Fragment fragment = WorkoutDetailFragment.newInstance(workoutId);
+        getSupportFragmentManager().beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(null)
+            .commit();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack();
+        } else {
+            super.onBackPressed();
+        }
     }
 }
