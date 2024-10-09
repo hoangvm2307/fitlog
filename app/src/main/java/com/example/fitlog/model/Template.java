@@ -1,14 +1,16 @@
 package com.example.fitlog.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.time.LocalDateTime;
 
-public class Template {
+public class Template implements Parcelable  {
 
-      private int id;
+    private int id;
     private int userId;
-    private String title;
+    private String name;
     private String description;
-    private String lastUsed;
     private String visibility;
     private LocalDateTime createAt;
     private LocalDateTime lastUsed;
@@ -18,19 +20,39 @@ public class Template {
         this.userId = userId;
         this.name = name;
         this.description = description;
-
-        this.lastUsed = lastUsed;
-              this.visibility = visibility;
+        this.visibility = visibility;
         this.createAt = createAt;
     }
 
-    public String getTitle() {
-        return title;
+    public Template(int id, int userId, String name, String description, String visibility, LocalDateTime createAt, LocalDateTime lastUsed) {
+        this.id = id;
+        this.userId = userId;
+        this.name = name;
+        this.description = description;
+        this.visibility = visibility;
+        this.createAt = createAt;
+        this.lastUsed = lastUsed;
     }
 
-    public String getDescription() {
-        return description;
+    protected Template(Parcel in) {
+        id = in.readInt();
+        userId = in.readInt();
+        name = in.readString();
+        description = in.readString();
+        visibility = in.readString();
     }
+
+    public static final Creator<Template> CREATOR = new Creator<Template>() {
+        @Override
+        public Template createFromParcel(Parcel in) {
+            return new Template(in);
+        }
+
+        @Override
+        public Template[] newArray(int size) {
+            return new Template[size];
+        }
+    };
 
     public String getLastUsed() {
         return this.lastUsed.toString();
@@ -39,11 +61,6 @@ public class Template {
     public void setLastUsed(LocalDateTime lastUsed) {
         this.lastUsed = lastUsed;
     }
-
-
-
-    
-
     public int getId() {
         return id;
     }
@@ -85,11 +102,25 @@ public class Template {
         this.visibility = visibility;
     }
 
-    public LocalDateTime getCreateAt() {
-        return createAt;
+    public String getCreateAt() {
+        return createAt.toString();
     }
 
     public void setCreateAt(LocalDateTime createAt) {
         this.createAt = createAt;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeInt(userId);
+        dest.writeString(name);
+        dest.writeString(description);
+        dest.writeString(visibility);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.fitlog;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import com.example.fitlog.model.Template;
 import com.google.android.material.button.MaterialButton;
@@ -80,6 +82,9 @@ public class StartWorkoutSession extends Fragment {
 
             menuIcon.setOnClickListener(v -> showPopupMenu(v, template));
 
+            // Thêm OnClickListener cho toàn bộ template view
+            templateView.setOnClickListener(v -> navigateToTemplateDetail(template));
+
             templateContainer.addView(templateView);
         }
 
@@ -121,6 +126,9 @@ public class StartWorkoutSession extends Fragment {
             templateView.setLayoutParams(params);
 
             menuIcon.setOnClickListener(v -> showPopupMenu(v, template));
+
+            // Thêm OnClickListener cho toàn bộ template view
+            templateView.setOnClickListener(v -> navigateToTemplateDetail(template));
 
             exampleTemplateContainer.addView(templateView);
         }
@@ -180,5 +188,17 @@ public class StartWorkoutSession extends Fragment {
             return false;
         });
         popupMenu.show();
+    }
+
+    // Thêm phương thức mới để chuyển đến TemplateDetail fragment
+    private void navigateToTemplateDetail(Template template) {
+        Bundle args = new Bundle();
+        args.putInt("templateId", template.getId());
+        args.putString("templateName", template.getName());
+        args.putString("templateDescription", template.getDescription());
+        // Thêm các thông tin khác của template nếu cần
+
+        NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+        navController.navigate(R.id.fragment_template_detail, args);
     }
 }
