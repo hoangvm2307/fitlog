@@ -33,7 +33,7 @@ public class StartWorkoutSession extends Fragment {
 
         MaterialButton btnStartEmptyWorkout = view.findViewById(R.id.btnStartEmptyWorkout);
         btnStartEmptyWorkout.setOnClickListener(v -> {
-            // TODO: Implement empty workout start logic
+
             Toast.makeText(requireContext(), "Starting an empty workout", Toast.LENGTH_SHORT).show();
         });
 
@@ -67,7 +67,7 @@ public class StartWorkoutSession extends Fragment {
                 continue;
             }
 
-            title.setText(template.getName());
+            title.setText(template.getTitle());
             description.setText(template.getDescription());
             lastUsed.setText(template.getLastUsed());
 
@@ -109,7 +109,7 @@ public class StartWorkoutSession extends Fragment {
                 continue;
             }
 
-            title.setText(template.getName());
+            title.setText(template.getTitle());
             description.setText(template.getDescription());
             lastUsed.setText(template.getLastUsed());
 
@@ -168,13 +168,13 @@ public class StartWorkoutSession extends Fragment {
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.action_edit) {
-                Toast.makeText(requireContext(), "Edit " + template.getName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Edit " + template.getTitle(), Toast.LENGTH_SHORT).show();
                 return true;
             } else if (itemId == R.id.action_duplicate) {
-                Toast.makeText(requireContext(), "Duplicate " + template.getName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Duplicate " + template.getTitle(), Toast.LENGTH_SHORT).show();
                 return true;
             } else if (itemId == R.id.action_delete) {
-                Toast.makeText(requireContext(), "Delete " + template.getName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Delete " + template.getTitle(), Toast.LENGTH_SHORT).show();
                 return true;
             }
             return false;
