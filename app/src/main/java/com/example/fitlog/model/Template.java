@@ -3,20 +3,21 @@ package com.example.fitlog.model;
 import java.time.LocalDateTime;
 
 public class Template {
+    private int id;
     private String title;
+    private int userId;
     private String description;
     private String lastUsed;
     private String visibility;
     private LocalDateTime createAt;
-    private LocalDateTime lastUsed;
 
     public Template() {
     }
 
-    public Template(int id, int userId, String name, String description, String visibility, LocalDateTime createAt) {
+    public Template(int id, int userId, String title, String description, String visibility, LocalDateTime createAt) {
         this.id = id;
         this.userId = userId;
-        this.name = name;
+        this.title = title;
         this.description = description;
         this.lastUsed = lastUsed;
     }
@@ -34,7 +35,7 @@ public class Template {
     }
 
     public void setLastUsed(LocalDateTime lastUsed) {
-        this.lastUsed = lastUsed;
+        this.lastUsed = lastUsed.toString();
     }
 
 
