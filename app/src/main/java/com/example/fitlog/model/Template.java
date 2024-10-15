@@ -8,16 +8,19 @@ public class Template {
 
     private String title;
     private int userId;
+    private String name;
+    private String title;
     private String description;
     private String lastUsed;
     private String visibility;
     private LocalDateTime createAt;
 
 
-    public Template(int id, int userId, String title, String description, String visibility, LocalDateTime createAt) {
-
+    public Template(int id, int userId, String name, String title, String description, String visibility, LocalDateTime createAt) {
         this.id = id;
         this.userId = userId;
+        this.name = name;
+        this.title = title;
         this.title = title;
         this.description = description;
 
@@ -41,10 +44,6 @@ public class Template {
     public void setLastUsed(LocalDateTime lastUsed) {
         this.lastUsed = lastUsed.toString();
     }
-
-
-
-    
 
     public int getId() {
         return id;
@@ -72,6 +71,14 @@ public class Template {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getLastUsed() {
+        return this.lastUsed.toString();
+    }
+
+    public void setLastUsed(LocalDateTime lastUsed) {
+        this.lastUsed = lastUsed.toString();
     }
 
 
