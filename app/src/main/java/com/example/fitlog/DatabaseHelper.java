@@ -440,6 +440,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
+
     // Add these methods to the DatabaseHelper class
 
     public Workout getWorkoutById(int workoutId) {
@@ -462,6 +463,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return workout;
     }
+
 
 
 
