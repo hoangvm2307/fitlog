@@ -5,28 +5,22 @@ import java.time.LocalDateTime;
 public class Template {
 
     private int id;
-
-    private String title;
     private int userId;
-    private String name;
     private String title;
     private String description;
-    private String lastUsed;
     private String visibility;
     private LocalDateTime createAt;
+    private LocalDateTime lastUsed;
 
 
-    public Template(int id, int userId, String name, String title, String description, String visibility, LocalDateTime createAt) {
+    public Template(int id, int userId, String title, String description, String visibility, LocalDateTime createAt) {
         this.id = id;
         this.userId = userId;
-        this.name = name;
-        this.title = title;
         this.title = title;
         this.description = description;
-
-        this.lastUsed = lastUsed;
-              this.visibility = visibility;
+        this.visibility = visibility;
         this.createAt = createAt;
+        this.lastUsed = createAt; // Initialize lastUsed with createAt
     }
 
     public String getTitle() {
@@ -42,7 +36,7 @@ public class Template {
     }
 
     public void setLastUsed(LocalDateTime lastUsed) {
-        this.lastUsed = lastUsed.toString();
+        this.lastUsed = lastUsed;
     }
 
     public int getId() {
@@ -61,26 +55,9 @@ public class Template {
         this.userId = userId;
     }
 
-    public String getName() {
-        return name;
+    public void setTitle(String title) {
+        this.title = title;
     }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getLastUsed() {
-        return this.lastUsed.toString();
-    }
-
-    public void setLastUsed(LocalDateTime lastUsed) {
-        this.lastUsed = lastUsed.toString();
-    }
-
 
     public void setDescription(String description) {
         this.description = description;

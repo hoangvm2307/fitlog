@@ -1,7 +1,6 @@
 package com.example.fitlog.DAOs;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
@@ -18,8 +17,8 @@ public class ExerciseDAO {
 
     private DatabaseHelper dbHelper;
 
-    public ExerciseDAO(Context context) {
-        dbHelper = new DatabaseHelper(context);
+    public ExerciseDAO(DatabaseHelper dbHelper) {
+        this.dbHelper = dbHelper;
     }
 
     public long insertExercise(Exercise exercise) {
@@ -135,6 +134,62 @@ public class ExerciseDAO {
             db.endTransaction();
         }
         return false;
+    }
+
+
+    public String getExerciseName(int exerciseId) {
+        SQLiteDatabase db = this.dbHelper.getReadableDatabase();
+        String query = "SELECT name FROM exercises WHERE id = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(exerciseId)});
+        
+        String name = "Unknown Exercise";
+        if (cursor.moveToFirst()) {
+            int nameIndex = cursor.getColumnIndex("name");
+            if (nameIndex != -1) {
+                name = cursor.getString(nameIndex);
+            }
+        }
+        cursor.close();
+        return name;
+    }
+
+    public List<Exercise> getExercisesByTemplateId(int templateId) {
+        List<Exercise> exercises = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        String query = "SELECT e.* FROM exercises e " +
+                       "JOIN template_exercises te ON e.id = te.exercise_id " +
+                       "WHERE te.template_id = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(templateId)});
+
+        try {
+            int idIndex = cursor.getColumnIndexOrThrow("id");
+            int userIdIndex = cursor.getColumnIndexOrThrow("user_id");
+            int nameIndex = cursor.getColumnIndexOrThrow("name");
+            int instructionIndex = cursor.getColumnIndexOrThrow("instruction");
+            int bodypartIndex = cursor.getColumnIndexOrThrow("bodypart");
+            int categoryIndex = cursor.getColumnIndexOrThrow("category");
+            int visibilityIndex = cursor.getColumnIndexOrThrow("visibility");
+            int imageNameIndex = cursor.getColumnIndexOrThrow("image_name");
+
+            while (cursor.moveToNext()) {
+                Exercise exercise = new Exercise(
+                    cursor.getInt(idIndex),
+                    cursor.getInt(userIdIndex),
+                    cursor.getString(nameIndex),
+                    cursor.getString(instructionIndex),
+                    cursor.getString(bodypartIndex),
+                    cursor.getString(categoryIndex),
+                    cursor.getString(visibilityIndex),
+                    cursor.getString(imageNameIndex)
+                );
+                exercises.add(exercise);
+            }
+        } catch (IllegalArgumentException e) {
+            Log.e("ExerciseDAO", "One or more columns do not exist in the exercises table", e);
+        } finally {
+            cursor.close();
+        }
+        return exercises;
     }
 
     // Các phương thức khác giữ nguyên

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import android.widget.PopupMenu;
 import android.view.MenuItem;
 import android.widget.Toast;
+import com.example.fitlog.DatabaseHelper;
 
 public class ExerciseList extends Fragment implements ExerciseAdapter.OnExerciseClickListener {
 
@@ -31,6 +32,14 @@ public class ExerciseList extends Fragment implements ExerciseAdapter.OnExercise
     private TextView newButton;
     private EditText searchEditText;
     private String currentBodyPart = "All"; // Thêm biến để theo dõi body part hiện tại
+    private DatabaseHelper dbHelper;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        dbHelper = DatabaseHelper.getInstance(requireContext());
+        exerciseDAO = new ExerciseDAO(dbHelper);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -44,7 +53,6 @@ public class ExerciseList extends Fragment implements ExerciseAdapter.OnExercise
                 layoutManager.getOrientation());
         recyclerView.addItemDecoration(dividerItemDecoration);
 
-        exerciseDAO = new ExerciseDAO(getContext());
         allExercises = exerciseDAO.getAllExercises();
 
         adapter = new ExerciseAdapter(allExercises, this);

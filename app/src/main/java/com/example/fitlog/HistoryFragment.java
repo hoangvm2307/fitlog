@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.fitlog.DAOs.WorkoutDAO;
 import com.example.fitlog.model.Workout;
 
 import java.util.List;
@@ -20,6 +21,14 @@ public class HistoryFragment extends Fragment {
 
     private RecyclerView historyRecyclerView;
     private DatabaseHelper dbHelper;
+    private WorkoutDAO workoutDAO;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        dbHelper = DatabaseHelper.getInstance(requireContext());
+        workoutDAO = new WorkoutDAO(dbHelper);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -28,8 +37,6 @@ public class HistoryFragment extends Fragment {
         historyRecyclerView = view.findViewById(R.id.historyRecyclerView);
         historyRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        dbHelper = DatabaseHelper.getInstance(getContext());
-        
         // Check if the database is empty before seeding
         if (isDatabaseEmpty()) {
             dbHelper.seedData();
@@ -50,7 +57,7 @@ public class HistoryFragment extends Fragment {
     }
 
     private void loadWorkoutHistory() {
-        Map<String, List<Workout>> workoutsByMonth = dbHelper.getWorkoutHistoryByMonth();
+        Map<String, List<Workout>> workoutsByMonth = dbHelper.getWorkoutDAO().getWorkoutHistoryByMonth();
         Log.d("HistoryFragment", "Workouts loaded: " + workoutsByMonth.size());
         HistoryAdapter adapter = new HistoryAdapter(workoutsByMonth, getContext());
         historyRecyclerView.setAdapter(adapter);

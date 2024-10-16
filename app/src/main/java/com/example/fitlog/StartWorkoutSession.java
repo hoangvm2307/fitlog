@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
+import com.example.fitlog.DAOs.TemplateDAO;
 import com.example.fitlog.model.Template;
 import com.google.android.material.button.MaterialButton;
 
@@ -26,6 +27,15 @@ import java.util.List;
 public class StartWorkoutSession extends Fragment {
 
     private static final String TAG = "StartWorkoutSession";
+    private DatabaseHelper dbHelper;
+    private TemplateDAO templateDAO;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        dbHelper = DatabaseHelper.getInstance(requireContext());
+        templateDAO = new TemplateDAO(dbHelper);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

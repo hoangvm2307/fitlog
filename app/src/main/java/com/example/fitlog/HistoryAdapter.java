@@ -176,11 +176,11 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         private String getWorkoutName(int templateId) {
-            return dbHelper.getWorkoutTemplateName(templateId);
+            return dbHelper.getWorkoutDAO().getWorkoutTemplateName(templateId);
         }
 
         private String getExerciseName(int exerciseId) {
-            return dbHelper.getExerciseName(exerciseId);
+            return dbHelper.getExerciseDAO().getExerciseName(exerciseId);
         }
     }
 

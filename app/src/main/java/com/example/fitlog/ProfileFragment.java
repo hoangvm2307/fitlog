@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 
+import com.example.fitlog.DAOs.UserDAO;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -27,6 +28,14 @@ public class ProfileFragment extends Fragment {
     private TextView workoutCount;
     private BarChart workoutsPerWeekChart;
     private DatabaseHelper dbHelper;
+    private UserDAO userDAO;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        dbHelper = DatabaseHelper.getInstance(requireContext());
+        userDAO = new UserDAO(dbHelper);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -35,8 +44,6 @@ public class ProfileFragment extends Fragment {
         userName = view.findViewById(R.id.userName);
         workoutCount = view.findViewById(R.id.workoutCount);
         workoutsPerWeekChart = view.findViewById(R.id.workoutsPerWeekChart);
-
-        dbHelper = DatabaseHelper.getInstance(getContext());
 
         updateUserInfo("Khoi Minh", 5);
         setupWorkoutsPerWeekChart();
@@ -50,7 +57,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupWorkoutsPerWeekChart() {
-        Map<String, Integer> workoutsPerWeek = dbHelper.getWorkoutCountByWeek();
+        Map<String, Integer> workoutsPerWeek = dbHelper.getWorkoutDAO().getWorkoutCountByWeek();
         List<BarEntry> entries = new ArrayList<>();
         List<String> labels = new ArrayList<>();
 

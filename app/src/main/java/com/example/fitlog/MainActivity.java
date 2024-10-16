@@ -27,7 +27,8 @@ public class MainActivity extends BaseActivity {
         }
        
         DatabaseManager.getInstance(this).open();
-        userDAO = new UserDAO(this);
+        dbHelper = DatabaseHelper.getInstance(this);
+        userDAO = new UserDAO(dbHelper);
 
         // Set StartWorkoutSession as the default screen
         if (savedInstanceState == null) {

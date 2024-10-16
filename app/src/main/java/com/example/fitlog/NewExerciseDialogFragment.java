@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import com.example.fitlog.model.Exercise;
 import com.example.fitlog.DAOs.ExerciseDAO;
+import com.example.fitlog.DatabaseHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +39,7 @@ public class NewExerciseDialogFragment extends DialogFragment {
     private ArrayAdapter<String> bodyPartAdapter; // Khai báo ở cấp class
     private ArrayAdapter<String> categoryAdapter;
     private OnExerciseAddedListener listener;
+    private DatabaseHelper dbHelper;
 
     public interface OnExerciseAddedListener {
         void onExerciseAdded();
@@ -50,6 +52,7 @@ public class NewExerciseDialogFragment extends DialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        dbHelper = DatabaseHelper.getInstance(requireContext());
         // Khởi tạo adapters trong onCreate
         initializeAdapters();
     }
@@ -152,7 +155,7 @@ public class NewExerciseDialogFragment extends DialogFragment {
 
         if (!name.isEmpty()) {
             Exercise newExercise = new Exercise(1, 1, name, " ", bodyPart, category, "", "");
-            ExerciseDAO exerciseDAO = new ExerciseDAO(getContext());
+            ExerciseDAO exerciseDAO = new ExerciseDAO(dbHelper);
             long result = exerciseDAO.insertExercise(newExercise);
 
             if (result != -1) {

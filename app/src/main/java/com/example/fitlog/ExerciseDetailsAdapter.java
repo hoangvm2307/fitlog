@@ -36,7 +36,7 @@ public class ExerciseDetailsAdapter extends RecyclerView.Adapter<ExerciseDetails
         int exerciseId = entry.getKey();
         List<ExerciseSet> sets = entry.getValue();
 
-        holder.exerciseName.setText(dbHelper.getExerciseName(exerciseId));
+        holder.exerciseName.setText(dbHelper.getExerciseDAO().getExerciseName(exerciseId));
         
         StringBuilder setsBuilder = new StringBuilder();
         StringBuilder oneRMsBuilder = new StringBuilder();

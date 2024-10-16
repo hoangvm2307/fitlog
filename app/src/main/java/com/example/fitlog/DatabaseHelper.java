@@ -14,6 +14,12 @@ import java.util.TreeMap;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+
+import com.example.fitlog.DAOs.ExerciseDAO;
+import com.example.fitlog.DAOs.ExerciseSetDAO;
+import com.example.fitlog.DAOs.TemplateDAO;
+import com.example.fitlog.DAOs.UserDAO;
+import com.example.fitlog.DAOs.WorkoutDAO;
 import com.example.fitlog.model.Workout;
 import com.example.fitlog.model.Exercise;
 import com.example.fitlog.model.ExerciseSet;
@@ -147,84 +153,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Add this method to the DatabaseHelper class
-    public Map<String, List<Workout>> getWorkoutHistoryByMonth() {
-        Map<String, List<Workout>> workoutsByMonth = new TreeMap<>(Collections.reverseOrder());
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        String query = "SELECT * FROM workout_sessions ORDER BY start_time DESC";
-        Cursor cursor = db.rawQuery(query, null);
-
-        Log.d("DatabaseHelper", "Cursor count: " + cursor.getCount());
-
-        if (cursor.moveToFirst()) {
-            do {
-                int idIndex = cursor.getColumnIndex("id");
-                int userIdIndex = cursor.getColumnIndex("user_id");
-                int templateIdIndex = cursor.getColumnIndex("template_id");
-                int startTimeIndex = cursor.getColumnIndex("start_time");
-                int endTimeIndex = cursor.getColumnIndex("end_time");
-
-                if (idIndex != -1 && userIdIndex != -1 && templateIdIndex != -1 && 
-                    startTimeIndex != -1 && endTimeIndex != -1) {
-                    
-                    int id = cursor.getInt(idIndex);
-                    int userId = cursor.getInt(userIdIndex);
-                    int templateId = cursor.getInt(templateIdIndex);
-                    long startTime = cursor.getLong(startTimeIndex);
-                    long endTime = cursor.getLong(endTimeIndex);
-
-                    Workout workout = new Workout(id, userId, templateId, new Date(startTime), new Date(endTime));
-                    workout.setExerciseSets(getExerciseSetsForWorkout(id));
-
-                    String month = new SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(new Date(startTime));
-                    
-                    if (!workoutsByMonth.containsKey(month)) {
-                        workoutsByMonth.put(month, new ArrayList<>());
-                    }
-                    workoutsByMonth.get(month).add(workout);
-                }
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-
-        Log.d("DatabaseHelper", "Total months: " + workoutsByMonth.size());
-        return workoutsByMonth;
-    }
-
-    private List<ExerciseSet> getExerciseSetsForWorkout(int workoutId) {
-        List<ExerciseSet> exerciseSets = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        
-        String query = "SELECT * FROM exercise_sets WHERE session_id = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(workoutId)});
-        
-        if (cursor.moveToFirst()) {
-            do {
-                int idIndex = cursor.getColumnIndex("id");
-                int sessionIdIndex = cursor.getColumnIndex("session_id");
-                int exerciseIdIndex = cursor.getColumnIndex("exercise_id");
-                int setNumberIndex = cursor.getColumnIndex("set_number");
-                int weightIndex = cursor.getColumnIndex("weight");
-                int repsIndex = cursor.getColumnIndex("reps");
-
-                if (idIndex != -1 && sessionIdIndex != -1 && exerciseIdIndex != -1 && 
-                    setNumberIndex != -1 && weightIndex != -1 && repsIndex != -1) {
-                    
-                    int id = cursor.getInt(idIndex);
-                    int sessionId = cursor.getInt(sessionIdIndex);
-                    int exerciseId = cursor.getInt(exerciseIdIndex);
-                    int setNumber = cursor.getInt(setNumberIndex);
-                    float weight = cursor.getFloat(weightIndex);
-                    int reps = cursor.getInt(repsIndex);
-                    
-                    ExerciseSet exerciseSet = new ExerciseSet(id, sessionId, exerciseId, setNumber, weight, reps);
-                    exerciseSets.add(exerciseSet);
-                }
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        
-        return exerciseSets;
+    public WorkoutDAO getWorkoutDAO() {
+        return new WorkoutDAO(this);
     }
 
     // Add this method to seed data
@@ -323,148 +253,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-
-    public String getExerciseName(int exerciseId) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT name FROM exercises WHERE id = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(exerciseId)});
-        
-        String name = "Unknown Exercise";
-        if (cursor.moveToFirst()) {
-            int nameIndex = cursor.getColumnIndex("name");
-            if (nameIndex != -1) {
-                name = cursor.getString(nameIndex);
-            }
-        }
-        cursor.close();
-        return name;
+    public ExerciseSetDAO getExerciseSetDAO() {
+        return new ExerciseSetDAO(this);
     }
 
-    // Add this method to the DatabaseHelper class
-    public String getWorkoutTemplateName(int templateId) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT name FROM workout_templates WHERE id = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(templateId)});
-        
-        String name = "Unknown Workout";
-        if (cursor.moveToFirst()) {
-            int nameIndex = cursor.getColumnIndex("name");
-            if (nameIndex != -1) {
-                name = cursor.getString(nameIndex);
-            }
-        }
-        cursor.close();
-        return name;
+    public ExerciseDAO getExerciseDAO() {
+        return new ExerciseDAO(this);
     }
 
-    public Map<String, Integer> getWorkoutsPerWeek() {
-        Map<String, Integer> workoutsPerWeek = new LinkedHashMap<>();
-        SQLiteDatabase db = this.getReadableDatabase();
+    // Add other DAO getters as needed
 
-        String query = "SELECT strftime('%W', datetime(start_time/1000, 'unixepoch')) as week, COUNT(*) as count " +
-                       "FROM workout_sessions " +
-                       "WHERE start_time >= datetime('now', '-8 weeks') " +
-                       "GROUP BY week " +
-                       "ORDER BY week DESC " +
-                       "LIMIT 8";
-
-        Cursor cursor = db.rawQuery(query, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                int weekIndex = cursor.getColumnIndex("week");
-                int countIndex = cursor.getColumnIndex("count");
-                
-                if (weekIndex != -1 && countIndex != -1) {
-                    String week = "W" + cursor.getString(weekIndex);
-                    int count = cursor.getInt(countIndex);
-                    workoutsPerWeek.put(week, count);
-                }
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-
-        return workoutsPerWeek;
+    public TemplateDAO getTemplateDAO() {
+        return new TemplateDAO(this);
     }
 
-    public Map<String, Integer> getWorkoutCountByWeek() {
-        Map<String, Integer> workoutsByWeek = new TreeMap<>(Collections.reverseOrder());
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        String query = "SELECT * FROM workout_sessions ORDER BY start_time DESC";
-        Cursor cursor = db.rawQuery(query, null);
-
-        Log.d("DatabaseHelper", "Cursor count: " + cursor.getCount());
-
-        if (cursor.moveToFirst()) {
-            do {
-                int startTimeIndex = cursor.getColumnIndex("start_time");
-
-                if (startTimeIndex != -1) {
-                    long startTime = cursor.getLong(startTimeIndex);
-                    Date startDate = new Date(startTime);
-
-                    // Sử dụng Calendar để lấy tuần và năm
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.setTime(startDate);
-
-                    int weekOfYear = calendar.get(Calendar.WEEK_OF_YEAR);
-                    int year = calendar.get(Calendar.YEAR);
-
-                    // Đặt ngày của Calendar về đầu tuần (thường là Chủ Nhật hoặc Thứ Hai)
-                    calendar.set(Calendar.WEEK_OF_YEAR, weekOfYear);
-                    calendar.set(Calendar.YEAR, year);
-                    calendar.set(Calendar.DAY_OF_WEEK, calendar.getFirstDayOfWeek());
-
-                    // Format ngày bắt đầu của tuần dưới dạng "dd/MM"
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM", Locale.getDefault());
-                    String startOfWeek = dateFormat.format(calendar.getTime());
-
-                    // Tạo khóa theo ngày đầu tuần
-                    String weekKey = startOfWeek;
-
-                    // Nếu tuần chưa tồn tại trong map, thêm mới với giá trị là 0
-                    if (!workoutsByWeek.containsKey(weekKey)) {
-                        workoutsByWeek.put(weekKey, 0);
-                    }
-
-                    // Tăng số lượng workout của tuần đó lên 1
-                    workoutsByWeek.put(weekKey, workoutsByWeek.get(weekKey) + 1);
-                }
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-
-        Log.d("DatabaseHelper", "Total weeks: " + workoutsByWeek.size());
-        return workoutsByWeek;
+    public UserDAO getUserDAO() {
+        return new UserDAO(this);
     }
-
-
-
-    // Add these methods to the DatabaseHelper class
-
-    public Workout getWorkoutById(int workoutId) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Workout workout = null;
-
-        String query = "SELECT * FROM workout_sessions WHERE id = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(workoutId)});
-
-        if (cursor.moveToFirst()) {
-            int userId = cursor.getInt(cursor.getColumnIndex("user_id"));
-            int templateId = cursor.getInt(cursor.getColumnIndex("template_id"));
-            long startTime = cursor.getLong(cursor.getColumnIndex("start_time"));
-            long endTime = cursor.getLong(cursor.getColumnIndex("end_time"));
-
-            workout = new Workout(workoutId, userId, templateId, new Date(startTime), new Date(endTime));
-            workout.setExerciseSets(getExerciseSetsForWorkout(workoutId));
-        }
-
-        cursor.close();
-        return workout;
-    }
-
-
-
-
 }

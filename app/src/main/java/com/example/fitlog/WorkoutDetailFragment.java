@@ -13,14 +13,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.fitlog.model.Workout;
 import com.example.fitlog.model.ExerciseSet;
+import com.example.fitlog.DAOs.WorkoutDAO;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ArrayList;
 
 public class WorkoutDetailFragment extends Fragment {
 
@@ -31,6 +32,7 @@ public class WorkoutDetailFragment extends Fragment {
     private TextView totalVolume;
     private RecyclerView exerciseRecyclerView;
     private DatabaseHelper dbHelper;
+    private WorkoutDAO workoutDAO;
     private ImageView backArrow;
 
     private static final String ARG_WORKOUT_ID = "workout_id";
@@ -44,46 +46,41 @@ public class WorkoutDetailFragment extends Fragment {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        dbHelper = DatabaseHelper.getInstance(requireContext());
+        workoutDAO = new WorkoutDAO(dbHelper);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_workout_detail, container, false);
-
-        backArrow = view.findViewById(R.id.backArrow);
-        backArrow.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
-            }
-        });
 
         workoutTitle = view.findViewById(R.id.workoutTitle);
         workoutDateTime = view.findViewById(R.id.workoutDateTime);
         workoutDuration = view.findViewById(R.id.workoutDuration);
         totalVolume = view.findViewById(R.id.totalVolume);
         exerciseRecyclerView = view.findViewById(R.id.exerciseRecyclerView);
-
-        dbHelper = DatabaseHelper.getInstance(getContext());
+        backArrow = view.findViewById(R.id.backArrow);
 
         if (getArguments() != null) {
-            int workoutId = getArguments().getInt(ARG_WORKOUT_ID, -1);
-            if (workoutId != -1) {
-                Workout workout = dbHelper.getWorkoutById(workoutId);
-                if (workout != null) {
-                    displayWorkoutDetails(workout);
-                } else {
-                    Log.e(TAG, "Workout not found for id: " + workoutId);
-                }
+            int workoutId = getArguments().getInt(ARG_WORKOUT_ID);
+            Workout workout = workoutDAO.getWorkoutById(workoutId);
+            if (workout != null) {
+                displayWorkoutDetails(workout);
             } else {
-                Log.e(TAG, "Invalid workout id");
+                Log.e(TAG, "Workout not found for ID: " + workoutId);
             }
-        } else {
-            Log.e(TAG, "No arguments provided");
         }
+
+        backArrow.setOnClickListener(v -> requireActivity().onBackPressed());
 
         return view;
     }
 
     private void displayWorkoutDetails(Workout workout) {
         try {
-            workoutTitle.setText(dbHelper.getWorkoutTemplateName(workout.getTemplateId()));
+            workoutTitle.setText(workoutDAO.getWorkoutTemplateName(workout.getTemplateId()));
             
             SimpleDateFormat sdf = new SimpleDateFormat("EEEE, d MMMM yyyy, HH:mm", Locale.getDefault());
             workoutDateTime.setText(sdf.format(workout.getStartTime()));
