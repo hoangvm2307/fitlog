@@ -159,4 +159,72 @@ public class WorkoutDAO {
         Template template = templateDAO.getTemplateById(templateId);
         return template != null ? template.getTitle() : "Unknown Workout";
     }
+
+    public long insertWorkout(Workout workout) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("user_id", workout.getUserId());
+        values.put("template_id", workout.getTemplateId());
+        values.put("start_time", workout.getStartTime().getTime());
+        return db.insert("workout_sessions", null, values);  // Changed from "workouts" to "workout_sessions"
+    }
+
+    public void updateWorkout(Workout workout) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("end_time", workout.getEndTime().getTime());
+        db.update("workout_sessions", values, "id = ?", new String[]{String.valueOf(workout.getId())});  // Changed from "workouts" to "workout_sessions"
+    }
+
+    public void insertSet(ExerciseSet set) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("workout_id", set.sessionId);
+        values.put("exercise_id", set.getExerciseId());
+        values.put("set_number", set.getSetNumber());
+        values.put("weight", set.getWeight());
+        values.put("reps", set.getReps());
+        db.insert("exercise_sets", null, values);
+    }
+
+    public List<ExerciseSet> getLastWorkoutSets(int exerciseId) {
+        List<ExerciseSet> sets = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String query = "SELECT es.* FROM exercise_sets es " +
+                       "JOIN workout_sessions ws ON es.session_id = ws.id " +  // Changed workout_id to session_id
+                       "WHERE es.exercise_id = ? " +
+                       "ORDER BY ws.start_time DESC, es.set_number ASC " +
+                       "LIMIT 3"; // Adjust the limit as needed
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(exerciseId)});
+
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex("id"));
+                int sessionId = cursor.getInt(cursor.getColumnIndex("session_id")); // Changed from workout_id
+                int exerciseIdFromDb = cursor.getInt(cursor.getColumnIndex("exercise_id"));
+                int setNumber = cursor.getInt(cursor.getColumnIndex("set_number"));
+                float weight = cursor.getFloat(cursor.getColumnIndex("weight"));
+                int reps = cursor.getInt(cursor.getColumnIndex("reps"));
+
+                ExerciseSet set = new ExerciseSet(id, sessionId, exerciseIdFromDb, setNumber, weight, reps);
+                sets.add(set);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return sets;
+    }
+
+    public long insertExerciseSet(ExerciseSet set) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("session_id", set.sessionId);  // Changed from workout_id to session_id
+        values.put("exercise_id", set.getExerciseId());
+        values.put("set_number", set.getSetNumber());
+        values.put("weight", set.getWeight());
+        values.put("reps", set.getReps());
+        return db.insert("exercise_sets", null, values);
+    }
 }

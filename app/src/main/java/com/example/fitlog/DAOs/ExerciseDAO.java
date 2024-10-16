@@ -192,5 +192,52 @@ public class ExerciseDAO {
         return exercises;
     }
 
+    public List<Exercise> getExercisesForTemplate(int templateId) {
+        List<Exercise> exercises = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String query = "SELECT e.*, te.exercise_order FROM exercises e " +
+                       "JOIN template_exercises te ON e.id = te.exercise_id " +
+                       "WHERE te.template_id = ? " +
+                       "ORDER BY te.exercise_order";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(templateId)});
+
+        if (cursor.moveToFirst()) {
+            do {
+                Exercise exercise = cursorToExercise(cursor);
+                int exerciseOrder = cursor.getInt(cursor.getColumnIndex("exercise_order"));
+                exercise.setExerciseOrder(exerciseOrder);
+                exercises.add(exercise);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return exercises;
+    }
+
+    // Helper method to convert cursor to Exercise object
+    private Exercise cursorToExercise(Cursor cursor) {
+        int id = cursor.getInt(cursor.getColumnIndex("id"));
+        int userId = cursor.getInt(cursor.getColumnIndex("user_id"));
+        String name = cursor.getString(cursor.getColumnIndex("name"));
+        String instruction = cursor.getString(cursor.getColumnIndex("instruction"));
+        String bodypart = cursor.getString(cursor.getColumnIndex("bodypart"));
+        String category = cursor.getString(cursor.getColumnIndex("category"));
+        String visibility = cursor.getString(cursor.getColumnIndex("visibility"));
+        String imageName = cursor.getString(cursor.getColumnIndex("image_name"));
+
+        Exercise exercise = new Exercise(id, userId, name, instruction, bodypart, category, visibility, imageName);
+        
+        // Set exercise_order if it exists in the cursor
+        int exerciseOrderIndex = cursor.getColumnIndex("exercise_order");
+        if (exerciseOrderIndex != -1) {
+            int exerciseOrder = cursor.getInt(exerciseOrderIndex);
+            exercise.setExerciseOrder(exerciseOrder);
+        }
+
+        return exercise;
+    }
+
     // Các phương thức khác giữ nguyên
 }

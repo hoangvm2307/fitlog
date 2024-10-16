@@ -12,6 +12,7 @@ public class Exercise implements Parcelable {
     private String category;
     private String visibility;
     private String imageName;
+    private int exerciseOrder; // New field
 
     public Exercise(int id, int userId, String name, String instruction, String bodypart, String category, String visibility, String imageName) {
         this.id = id;
@@ -22,12 +23,15 @@ public class Exercise implements Parcelable {
         this.category = category;
         this.visibility = visibility;
         this.imageName = imageName;
+        this.exerciseOrder = 0; // Default value
     }
+
     public Exercise(String name, String bodypart, String category){
         this.name = name;
         this.bodypart = bodypart;
         this.category = category;
     }
+
     protected Exercise(Parcel in) {
         id = in.readInt();
         userId = in.readInt();
@@ -37,6 +41,7 @@ public class Exercise implements Parcelable {
         category = in.readString();
         visibility = in.readString();
         imageName = in.readString();
+        exerciseOrder = in.readInt();
     }
 
     public static final Creator<Exercise> CREATOR = new Creator<Exercise>() {
@@ -66,6 +71,7 @@ public class Exercise implements Parcelable {
         dest.writeString(category);
         dest.writeString(visibility);
         dest.writeString(imageName);
+        dest.writeInt(exerciseOrder);
     }
 
     // Existing getters and setters...
@@ -131,5 +137,13 @@ public class Exercise implements Parcelable {
 
     public void setImageName(String imageName) {
         this.imageName = imageName;
+    }
+
+    public int getExerciseOrder() {
+        return exerciseOrder;
+    }
+
+    public void setExerciseOrder(int exerciseOrder) {
+        this.exerciseOrder = exerciseOrder;
     }
 }

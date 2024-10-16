@@ -1,12 +1,12 @@
 package com.example.fitlog.model;
 
 public class ExerciseSet {
-    private int id;
-    private int sessionId;
-    private int exerciseId;
-    private int setNumber;
-    private float weight;
-    private int reps;
+    public int id;
+    public int sessionId;
+    public int exerciseId;
+    public int setNumber;
+    public float weight;
+    public int reps;
 
     // Constructor
     public ExerciseSet(int id, int sessionId, int exerciseId, int setNumber, float weight, int reps) {

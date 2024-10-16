@@ -13,6 +13,16 @@ public class Template {
     private LocalDateTime lastUsed;
 
 
+    public Template(int id, int userId, String title, String description, String visibility, LocalDateTime createAt, LocalDateTime lastUsed) {
+        this.id = id;
+        this.userId = userId;
+        this.title = title;
+        this.description = description;
+        this.visibility = visibility;
+        this.createAt = createAt;
+        this.lastUsed = lastUsed;
+    }
+
     public Template(int id, int userId, String title, String description, String visibility, LocalDateTime createAt) {
         this.id = id;
         this.userId = userId;
@@ -20,7 +30,7 @@ public class Template {
         this.description = description;
         this.visibility = visibility;
         this.createAt = createAt;
-        this.lastUsed = createAt; // Initialize lastUsed with createAt
+        this.lastUsed = createAt;
     }
 
     public String getTitle() {
@@ -31,8 +41,8 @@ public class Template {
         return description;
     }
 
-    public String getLastUsed() {
-        return this.lastUsed.toString();
+    public LocalDateTime getLastUsed() {
+        return lastUsed;
     }
 
     public void setLastUsed(LocalDateTime lastUsed) {
@@ -77,5 +87,12 @@ public class Template {
 
     public void setCreateAt(LocalDateTime createAt) {
         this.createAt = createAt;
+    }
+
+    public String getFormattedLastUsed() {
+        if (lastUsed != null) {
+            return lastUsed.format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy"));
+        }
+        return "Never used";
     }
 }

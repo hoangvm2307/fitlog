@@ -32,7 +32,7 @@ import java.util.LinkedHashMap;
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static DatabaseHelper instance;
     private static final String DATABASE_NAME = "WorkoutApp.db";
-    private static final int DATABASE_VERSION = 2; // Tăng từ 1 lên 2
+    private static final int DATABASE_VERSION = 3; // Increment this
 
     public static synchronized DatabaseHelper getInstance(Context context) {
         if (instance == null) {
@@ -52,12 +52,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Câu lệnh SQL để tạo bảng workout_templates
     private static final String SQL_CREATE_WORKOUT_TEMPLATES =
             "CREATE TABLE workout_templates (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "user_id INTEGER," +
-                    "name VARCHAR," +
-                    "description TEXT," +
-                    "visibility VARCHAR," +
-                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "user_id INTEGER, " +
+                    "name TEXT, " +
+                    "description TEXT, " +
+                    "visibility TEXT, " +
+                    "created_at TEXT, " +
+                    "last_used TEXT, " +  // Add this line
                     "FOREIGN KEY (user_id) REFERENCES users(id))";
 
     // Câu lệnh SQL để tạo bảng exercises
@@ -131,12 +132,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {
-            // Thêm cột image_name vào bảng exercises
-            db.execSQL("ALTER TABLE exercises ADD COLUMN image_name TEXT");
-            
-            // Cập nhật dữ liệu cho cột image_name
-            updateExerciseImages(db);
+            // Handle upgrade to version 2 if needed
         }
+        if (oldVersion < 3) {
+            // Add the last_used column to the workout_templates table
+            db.execSQL("ALTER TABLE workout_templates ADD COLUMN last_used TEXT");
+        }
+        // Handle other version upgrades here
     }
 
     private void updateExerciseImages(SQLiteDatabase db) {
@@ -250,6 +252,86 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                 }
             }
+        }
+
+        // Seed default templates with exercises
+        String[] defaultTemplates = {
+            "Full Body Workout|A comprehensive workout targeting all major muscle groups",
+            "Upper Body Focus|Concentrate on chest, back, shoulders, and arms",
+            "Lower Body Blast|Intense leg and glute workout",
+            "Core Crusher|Strengthen your abs and improve stability"
+        };
+
+        for (String templateInfo : defaultTemplates) {
+            String[] parts = templateInfo.split("\\|");
+            ContentValues templateValues = new ContentValues();
+            templateValues.put("user_id", 0); // 0 for default templates
+            templateValues.put("name", parts[0]);
+            templateValues.put("description", parts[1]);
+            templateValues.put("visibility", "public");
+            templateValues.put("created_at", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+            long templateId = db.insert("workout_templates", null, templateValues);
+
+            // Add exercises to this template
+            String[][] exercisesForTemplate = getExercisesForTemplate(parts[0]);
+            for (int i = 0; i < exercisesForTemplate.length; i++) {
+                String[] exerciseData = exercisesForTemplate[i];
+                ContentValues exerciseValues = new ContentValues();
+                exerciseValues.put("user_id", 0); // 0 for default exercises
+                exerciseValues.put("name", exerciseData[0]);
+                exerciseValues.put("instruction", exerciseData[1]);
+                exerciseValues.put("bodypart", exerciseData[2]);
+                exerciseValues.put("category", exerciseData[3]);
+                exerciseValues.put("visibility", "public");
+                exerciseValues.put("image_name", exerciseData[4]);
+                long exerciseId = db.insert("exercises", null, exerciseValues);
+
+                // Link exercise to template
+                ContentValues templateExerciseValues = new ContentValues();
+                templateExerciseValues.put("template_id", templateId);
+                templateExerciseValues.put("exercise_id", exerciseId);
+                templateExerciseValues.put("exercise_order", i + 1);
+                db.insert("template_exercises", null, templateExerciseValues);
+            }
+        }
+    }
+
+    private String[][] getExercisesForTemplate(String templateName) {
+        switch (templateName) {
+            case "Full Body Workout":
+                return new String[][] {
+                    {"Squat", "Perform squats with proper form", "Legs", "Strength", "squat"},
+                    {"Bench Press", "Perform bench press with proper form", "Chest", "Strength", "bench_press"},
+                    {"Deadlift", "Perform deadlifts with proper form", "Back", "Strength", "deadlift"},
+                    {"Shoulder Press", "Perform shoulder press with proper form", "Shoulders", "Strength", "shoulder_press"},
+                    {"Pull-ups", "Perform pull-ups with proper form", "Back", "Strength", "pull_ups"}
+                };
+            case "Upper Body Focus":
+                return new String[][] {
+                    {"Bench Press", "Perform bench press with proper form", "Chest", "Strength", "bench_press"},
+                    {"Shoulder Press", "Perform shoulder press with proper form", "Shoulders", "Strength", "shoulder_press"},
+                    {"Pull-ups", "Perform pull-ups with proper form", "Back", "Strength", "pull_ups"},
+                    {"Bicep Curls", "Perform bicep curls with proper form", "Arms", "Isolation", "bicep_curls"},
+                    {"Tricep Dips", "Perform tricep dips with proper form", "Arms", "Isolation", "tricep_dips"}
+                };
+            case "Lower Body Blast":
+                return new String[][] {
+                    {"Squat", "Perform squats with proper form", "Legs", "Strength", "squat"},
+                    {"Deadlift", "Perform deadlifts with proper form", "Back", "Strength", "deadlift"},
+                    {"Lunges", "Perform lunges with proper form", "Legs", "Strength", "lunges"},
+                    {"Leg Press", "Perform leg press with proper form", "Legs", "Strength", "leg_press"},
+                    {"Calf Raises", "Perform calf raises with proper form", "Legs", "Isolation", "calf_raises"}
+                };
+            case "Core Crusher":
+                return new String[][] {
+                    {"Plank", "Hold plank position with proper form", "Core", "Stability", "plank"},
+                    {"Crunches", "Perform crunches with proper form", "Core", "Strength", "crunches"},
+                    {"Russian Twists", "Perform Russian twists with proper form", "Core", "Strength", "russian_twists"},
+                    {"Leg Raises", "Perform leg raises with proper form", "Core", "Strength", "leg_raises"},
+                    {"Mountain Climbers", "Perform mountain climbers with proper form", "Core", "Cardio", "mountain_climbers"}
+                };
+            default:
+                return new String[0][0];
         }
     }
 

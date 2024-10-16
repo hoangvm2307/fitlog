@@ -9,12 +9,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FitLog">
-        <activity android:name=".MainActivity" android:exported="true">
+
+        <!-- Your existing activities -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Add this line to declare the SessionDetails activity -->
+        <activity
+            android:name=".SessionDetails"
+            android:exported="false" />
+
+        <!-- Other activities and components -->
+
     </application>
 
 </manifest>

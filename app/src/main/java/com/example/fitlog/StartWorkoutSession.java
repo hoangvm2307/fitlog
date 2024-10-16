@@ -21,8 +21,12 @@ import com.example.fitlog.model.Template;
 import com.google.android.material.button.MaterialButton;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class StartWorkoutSession extends Fragment {
 
@@ -35,6 +39,9 @@ public class StartWorkoutSession extends Fragment {
         super.onCreate(savedInstanceState);
         dbHelper = DatabaseHelper.getInstance(requireContext());
         templateDAO = new TemplateDAO(dbHelper);
+        
+        // Insert example templates if they don't exist
+        templateDAO.insertExampleTemplatesIfNotExist();
     }
 
     @Override
@@ -43,11 +50,10 @@ public class StartWorkoutSession extends Fragment {
 
         MaterialButton btnStartEmptyWorkout = view.findViewById(R.id.btnStartEmptyWorkout);
         btnStartEmptyWorkout.setOnClickListener(v -> {
-
             Toast.makeText(requireContext(), "Starting an empty workout", Toast.LENGTH_SHORT).show();
         });
 
-        List<Template> templates = getMockTemplates();
+        List<Template> templates = getUserTemplates();
         LinearLayout templateContainer = view.findViewById(R.id.templateContainer);
 
         if (templateContainer == null) {
@@ -60,26 +66,28 @@ public class StartWorkoutSession extends Fragment {
         int deviceWidth = displayMetrics.widthPixels;
 
         for (Template template : templates) {
-            View templateView = LayoutInflater.from(requireContext()).inflate(R.layout.template_item, templateContainer, false);
-
-            if (templateView == null) {
-                Log.e(TAG, "Template view is null");
-                continue;
-            }
+            View templateView = inflater.inflate(R.layout.template_item, templateContainer, false);
 
             TextView title = templateView.findViewById(R.id.templateTitle);
             TextView description = templateView.findViewById(R.id.templateDescription);
             TextView lastUsed = templateView.findViewById(R.id.templateLastUsed);
             ImageView menuIcon = templateView.findViewById(R.id.menuIcon);
 
-            if (title == null || description == null || lastUsed == null || menuIcon == null) {
+            if (title == null || lastUsed == null || menuIcon == null) {
                 Log.e(TAG, "One of the template view components is null");
                 continue;
             }
 
             title.setText(template.getTitle());
             description.setText(template.getDescription());
-            lastUsed.setText(template.getLastUsed());
+
+            LocalDateTime lastUsedDate = template.getLastUsed();
+            if (lastUsedDate != null) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
+                lastUsed.setText("Last used: " + lastUsedDate.format(formatter));
+            } else {
+                lastUsed.setText("Never used");
+            }
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     (int) (deviceWidth * 0.45),
@@ -89,6 +97,8 @@ public class StartWorkoutSession extends Fragment {
             templateView.setLayoutParams(params);
 
             menuIcon.setOnClickListener(v -> showPopupMenu(v, template));
+
+            templateView.setOnClickListener(v -> openTemplateDetail(template.getId()));
 
             templateContainer.addView(templateView);
         }
@@ -121,7 +131,14 @@ public class StartWorkoutSession extends Fragment {
 
             title.setText(template.getTitle());
             description.setText(template.getDescription());
-            lastUsed.setText(template.getLastUsed());
+            
+            // Handle null lastUsed date
+            LocalDateTime lastUsedDate = template.getLastUsed();
+            if (lastUsedDate != null) {
+                lastUsed.setText(lastUsedDate.toString());
+            } else {
+                lastUsed.setText("Never used");
+            }
 
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
             params.width = 0;
@@ -132,44 +149,30 @@ public class StartWorkoutSession extends Fragment {
 
             menuIcon.setOnClickListener(v -> showPopupMenu(v, template));
 
+            templateView.setOnClickListener(v -> openTemplateDetail(template.getId()));
+
             exampleTemplateContainer.addView(templateView);
         }
 
         return view;
     }
 
-    private List<Template> getMockTemplates() {
-        List<Template> templates = new ArrayList<>();
-        Template upperBody = new Template(1, 1, "Upper Body Workout", "Chest, shoulders, and arms exercises", "private", LocalDateTime.now().minusDays(3));
-        upperBody.setLastUsed(LocalDateTime.now().minusDays(3));
-        templates.add(upperBody);
+    private void openTemplateDetail(int templateId) {
+        Fragment fragment = TemplateDetail.newInstance(templateId);
+        requireActivity().getSupportFragmentManager().beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(null)
+            .commit();
+    }
 
-        Template lowerBody = new Template(2, 1, "Lower Body Workout", "Legs and glutes exercises", "private", LocalDateTime.now().minusWeeks(1));
-        lowerBody.setLastUsed(LocalDateTime.now().minusWeeks(1));
-        templates.add(lowerBody);
-
-        return templates;
+    private List<Template> getUserTemplates() {
+        // Fetch user templates from the database
+        return templateDAO.getTemplatesByUserId(1); // Assuming user ID 1 for now
     }
 
     private List<Template> getExampleTemplates() {
-        List<Template> templates = new ArrayList<>();
-        Template fullBody = new Template(3, 0, "Full Body Workout", "Complete body workout for beginners", "public", LocalDateTime.now().minusDays(5));
-        fullBody.setLastUsed(LocalDateTime.now().minusDays(5));
-        templates.add(fullBody);
-
-        Template hiit = new Template(4, 0, "HIIT Cardio", "High-intensity interval training", "public", LocalDateTime.now().minusDays(2));
-        hiit.setLastUsed(LocalDateTime.now().minusDays(2));
-        templates.add(hiit);
-
-        Template core = new Template(5, 0, "Core Strength", "Abdominal and lower back exercises", "public", LocalDateTime.now().minusDays(1));
-        core.setLastUsed(LocalDateTime.now().minusDays(1));
-        templates.add(core);
-
-        Template yoga = new Template(6, 0, "Yoga Flow", "Relaxing yoga session", "public", LocalDateTime.now().minusDays(4));
-        yoga.setLastUsed(LocalDateTime.now().minusDays(4));
-        templates.add(yoga);
-
-        return templates;
+        // Fetch example templates from the database
+        return templateDAO.getExampleTemplates();
     }
 
     private void showPopupMenu(View view, Template template) {
