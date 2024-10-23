@@ -49,9 +49,7 @@ public class StartWorkoutSession extends Fragment {
         View view = inflater.inflate(R.layout.activity_start_workout_session, container, false);
 
         MaterialButton btnStartEmptyWorkout = view.findViewById(R.id.btnStartEmptyWorkout);
-        btnStartEmptyWorkout.setOnClickListener(v -> {
-            Toast.makeText(requireContext(), "Starting an empty workout", Toast.LENGTH_SHORT).show();
-        });
+        MaterialButton btnAddTemplate = view.findViewById(R.id.btnAddTemplate);
 
         List<Template> templates = getUserTemplates();
         LinearLayout templateContainer = view.findViewById(R.id.templateContainer);
@@ -60,6 +58,8 @@ public class StartWorkoutSession extends Fragment {
             Log.e(TAG, "Template container is null");
             return view;
         }
+
+        btnAddTemplate.setOnClickListener(v -> openAddTemplate());
 
         // Get the device width
         DisplayMetrics displayMetrics = requireContext().getResources().getDisplayMetrics();
@@ -99,6 +99,8 @@ public class StartWorkoutSession extends Fragment {
             menuIcon.setOnClickListener(v -> showPopupMenu(v, template));
 
             templateView.setOnClickListener(v -> openTemplateDetail(template.getId()));
+
+            btnStartEmptyWorkout.setOnClickListener(v -> openSessionFragment(template.getId()));
 
             templateContainer.addView(templateView);
         }
@@ -165,6 +167,30 @@ public class StartWorkoutSession extends Fragment {
             .commit();
     }
 
+    private void openSessionFragment(int templateId) {
+        Fragment fragment = SessionDetails.newInstance(templateId);
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void openAddTemplate() {
+        Fragment fragment = CreateTemplate.newInstance();
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void openUpdateTemplate(int templateId) {
+        Fragment fragment = TemplateUpdateFragment.newInstance(templateId);
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
     private List<Template> getUserTemplates() {
         // Fetch user templates from the database
         return templateDAO.getTemplatesByUserId(1); // Assuming user ID 1 for now
@@ -181,6 +207,7 @@ public class StartWorkoutSession extends Fragment {
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.action_edit) {
+                openUpdateTemplate(template.getId());
                 Toast.makeText(requireContext(), "Edit " + template.getTitle(), Toast.LENGTH_SHORT).show();
                 return true;
             } else if (itemId == R.id.action_duplicate) {
