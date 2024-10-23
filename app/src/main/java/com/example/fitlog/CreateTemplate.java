@@ -11,12 +11,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Chronometer;
+import android.widget.EditText;
 
 import com.example.fitlog.DAOs.ExerciseDAO;
 import com.example.fitlog.DAOs.TemplateDAO;
 import com.example.fitlog.DAOs.WorkoutDAO;
 import com.example.fitlog.model.Exercise;
 import com.example.fitlog.model.Workout;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.List;
 
@@ -29,14 +31,9 @@ public class CreateTemplate extends Fragment {
     private static final String ARG_TEMPLATE_ID = "template_id";
     private int templateId;
 
-    private Chronometer chronometer;
-    private Button finishButton;
-    private RecyclerView exercisesRecyclerView;
-    private WorkoutDAO workoutDAO;
-    private ExerciseDAO exerciseDAO;
-    private TemplateDAO templateDAO;
-    private List<Exercise> exercises;
-    private Workout currentWorkout;
+    private EditText etTemplateName, etNotes;
+    private Button addExercise;
+    private MaterialButton btnSave;
 
     public static CreateTemplate newInstance() {
         CreateTemplate fragment = new CreateTemplate();
@@ -54,8 +51,6 @@ public class CreateTemplate extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
 
@@ -67,12 +62,4 @@ public class CreateTemplate extends Fragment {
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
         return view;
     }
-
-//    private void backPreviousPage() {
-//        Fragment fragment = StartWorkoutSession.newInstance();
-//        requireActivity().getSupportFragmentManager().beginTransaction()
-//                .replace(R.id.fragment_container, fragment)
-//                .addToBackStack(null)
-//                .commit();
-//    }
 }

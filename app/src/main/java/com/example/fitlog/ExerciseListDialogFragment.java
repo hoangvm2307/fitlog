@@ -1,47 +1,54 @@
 package com.example.fitlog;
 
+import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
+import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ExerciseListDialogFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class ExerciseListDialogFragment extends Fragment {
+import com.example.fitlog.model.Exercise;
+import java.util.ArrayList;
+import java.util.List;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+public class ExerciseListDialogFragment extends DialogFragment {
+    private static final String ARG_EXERCISE = "exercises";
+    private ArrayList<Exercise> exerciseList;
+    private ExerciseAdapter adapter;
+    private OnExerciseSelectedListener listener;
+    private OnEditClickListener editListener;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public ExerciseListDialogFragment() {
-        // Required empty public constructor
+    // Interface for exercise selection callback
+    public interface OnExerciseSelectedListener {
+        void onExerciseSelected(Exercise exercise);
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ExerciseListDialogFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ExerciseListDialogFragment newInstance(String param1, String param2) {
+    // Interface for edit button callback
+    public interface OnEditClickListener {
+        void onEditClick();
+    }
+
+    public ExerciseListDialogFragment() {}
+
+    public void setOnExerciseSelectedListener(OnExerciseSelectedListener listener) {
+        this.listener = listener;
+    }
+
+    public void setOnEditClickListener(OnEditClickListener listener) {
+        this.editListener = listener;
+    }
+
+    public static ExerciseListDialogFragment newInstance(List<Exercise> exercises) {
         ExerciseListDialogFragment fragment = new ExerciseListDialogFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putParcelableArrayList(ARG_EXERCISE, new ArrayList<>(exercises));
         fragment.setArguments(args);
         return fragment;
     }
@@ -49,16 +56,85 @@ public class ExerciseListDialogFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setStyle(DialogFragment.STYLE_NO_TITLE, R.style.FullScreenDialogStyle);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            exerciseList = getArguments().getParcelableArrayList(ARG_EXERCISE);
         }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_exercise_list_dialog, container, false);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_exercise_list_dialog, container, false);
+
+        // Initialize views
+        RecyclerView recyclerView = view.findViewById(R.id.exerciseRecyclerView);
+        EditText searchEditText = view.findViewById(R.id.searchEditText);
+        ImageButton closeButton = view.findViewById(R.id.closeButton);
+        TextView exerciseNameTitle = view.findViewById(R.id.exerciseName);
+        TextView editButton = view.findViewById(R.id.editButton);
+
+        // Set title
+        exerciseNameTitle.setText("Select Exercise");
+
+        // Set up the RecyclerView with your existing adapter
+        adapter = new ExerciseAdapter(exerciseList, exercise -> {
+            if (listener != null) {
+                listener.onExerciseSelected(exercise);
+            }
+            dismiss();
+        });
+
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        // Set up click listeners
+        closeButton.setOnClickListener(v -> dismiss());
+
+        editButton.setOnClickListener(v -> {
+            if (editListener != null) {
+                editListener.onEditClick();
+            }
+        });
+
+        // Handle search functionality
+        searchEditText.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterExercises(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        return view;
+    }
+
+    private void filterExercises(String query) {
+        if (exerciseList == null) return;
+
+        List<Exercise> filteredList = new ArrayList<>();
+        for (Exercise exercise : exerciseList) {
+            if (exercise.getName().toLowerCase().contains(query.toLowerCase()) ||
+                    exercise.getBodypart().toLowerCase().contains(query.toLowerCase())) {
+                filteredList.add(exercise);
+            }
+        }
+        adapter.updateExercises(filteredList);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Dialog dialog = getDialog();
+        if (dialog != null) {
+            int width = ViewGroup.LayoutParams.MATCH_PARENT;
+            int height = ViewGroup.LayoutParams.MATCH_PARENT;
+            dialog.getWindow().setLayout(width, height);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
     }
 }

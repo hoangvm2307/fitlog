@@ -37,14 +37,15 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/editButton"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@android:color/holo_blue_dark"
             android:text="Save"
-            android:textColor="@android:color/white"
-            android:textSize="16sp" />
+            android:textAllCaps="false"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:textColor="@color/primary"
+            android:strokeColor="@color/primary"/>
     </LinearLayout>
 
     <!-- Template Name -->
