@@ -253,6 +253,42 @@ public class TemplateDAO {
         return isSuccess;
     }
 
+    public boolean deleteTemplate(long templateId) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        boolean isSuccess = false;
+
+        db.beginTransaction();
+        try {
+            // First delete related exercises in template_exercises table
+            int deletedExercises = db.delete("template_exercises",
+                    "template_id = ?",
+                    new String[]{String.valueOf(templateId)}
+            );
+            Log.d(TAG, "Deleted " + deletedExercises + " exercises from template");
+
+            // Then delete the template
+            int deletedRows = db.delete("workout_templates",
+                    "id = ?",
+                    new String[]{String.valueOf(templateId)}
+            );
+
+            if (deletedRows > 0) {
+                Log.d(TAG, "Deleted template with ID: " + templateId);
+                db.setTransactionSuccessful();
+                isSuccess = true;
+            } else {
+                Log.e(TAG, "Failed to delete template with ID: " + templateId);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error in deleteTemplate: " + e.getMessage());
+            isSuccess = false;
+        } finally {
+            db.endTransaction();
+        }
+
+        return isSuccess;
+    }
+
     public List<Template> getExampleTemplates() {
         List<Template> templates = new ArrayList<>();
         SQLiteDatabase db = dbHelper.getReadableDatabase();

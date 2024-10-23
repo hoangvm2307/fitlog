@@ -14,6 +14,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
 import com.example.fitlog.DAOs.TemplateDAO;
@@ -33,13 +34,15 @@ public class StartWorkoutSession extends Fragment {
     private static final String TAG = "StartWorkoutSession";
     private DatabaseHelper dbHelper;
     private TemplateDAO templateDAO;
+    private LinearLayout templateContainer;
+    private CardView cView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         dbHelper = DatabaseHelper.getInstance(requireContext());
         templateDAO = new TemplateDAO(dbHelper);
-        
+
         // Insert example templates if they don't exist
         templateDAO.insertExampleTemplatesIfNotExist();
     }
@@ -47,12 +50,13 @@ public class StartWorkoutSession extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_start_workout_session, container, false);
+        View cardView = inflater.inflate(R.layout.template_item, container, false);
 
         MaterialButton btnStartEmptyWorkout = view.findViewById(R.id.btnStartEmptyWorkout);
         MaterialButton btnAddTemplate = view.findViewById(R.id.btnAddTemplate);
 
         List<Template> templates = getUserTemplates();
-        LinearLayout templateContainer = view.findViewById(R.id.templateContainer);
+        templateContainer = view.findViewById(R.id.templateContainer);
 
         if (templateContainer == null) {
             Log.e(TAG, "Template container is null");
@@ -96,7 +100,7 @@ public class StartWorkoutSession extends Fragment {
             params.setMargins(8, 8, 8, 8); // Add margin between items
             templateView.setLayoutParams(params);
 
-            menuIcon.setOnClickListener(v -> showPopupMenu(v, template));
+            menuIcon.setOnClickListener(v -> showPopupMenu(v, template, cardView));
 
             templateView.setOnClickListener(v -> openTemplateDetail(template.getId()));
 
@@ -133,7 +137,7 @@ public class StartWorkoutSession extends Fragment {
 
             title.setText(template.getTitle());
             description.setText(template.getDescription());
-            
+
             // Handle null lastUsed date
             LocalDateTime lastUsedDate = template.getLastUsed();
             if (lastUsedDate != null) {
@@ -149,7 +153,7 @@ public class StartWorkoutSession extends Fragment {
             params.setMargins(8, 8, 8, 8); // Add margin between items
             templateView.setLayoutParams(params);
 
-            menuIcon.setOnClickListener(v -> showPopupMenu(v, template));
+            menuIcon.setOnClickListener(v -> showPopupMenu(v, template, cardView));
 
             templateView.setOnClickListener(v -> openTemplateDetail(template.getId()));
 
@@ -201,7 +205,7 @@ public class StartWorkoutSession extends Fragment {
         return templateDAO.getExampleTemplates();
     }
 
-    private void showPopupMenu(View view, Template template) {
+    private void showPopupMenu(View view, Template template, View cardView) {
         PopupMenu popupMenu = new PopupMenu(requireContext(), view);
         popupMenu.inflate(R.menu.template_item_menu);
         popupMenu.setOnMenuItemClickListener(item -> {
@@ -214,6 +218,10 @@ public class StartWorkoutSession extends Fragment {
                 Toast.makeText(requireContext(), "Duplicate " + template.getTitle(), Toast.LENGTH_SHORT).show();
                 return true;
             } else if (itemId == R.id.action_delete) {
+                templateDAO.deleteTemplate(template.getId());
+                templateContainer.removeView(cardView);
+                templateContainer.invalidate();  // Thông báo cho hệ thống vẽ lại
+                templateContainer.requestLayout();
                 Toast.makeText(requireContext(), "Delete " + template.getTitle(), Toast.LENGTH_SHORT).show();
                 return true;
             }
@@ -221,4 +229,5 @@ public class StartWorkoutSession extends Fragment {
         });
         popupMenu.show();
     }
+
 }
