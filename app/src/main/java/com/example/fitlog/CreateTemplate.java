@@ -37,7 +37,7 @@ public class CreateTemplate extends Fragment implements ExerciseListDialogFragme
     private EditText etTemplateName;
     private EditText etNotes;
 
-    private SelectedExerciseAdapter selectedExerciseAdapter;
+    private SelectedExerciseCreateAdapter selectedExerciseCreateAdapter;
     private RecyclerView rvSelectedExercises;
     private DatabaseHelper dbHelper;
 
@@ -71,9 +71,9 @@ public class CreateTemplate extends Fragment implements ExerciseListDialogFragme
         rvSelectedExercises = view.findViewById(R.id.rvSelectedExercises);
 
         // Tạo adapter với callback xóa item
-        selectedExerciseAdapter = new SelectedExerciseAdapter(selectedExercises, position -> {
+        selectedExerciseCreateAdapter = new SelectedExerciseCreateAdapter(selectedExercises, position -> {
             selectedExercises.remove(position);
-            selectedExerciseAdapter.notifyItemRemoved(position);
+            selectedExerciseCreateAdapter.notifyItemRemoved(position);
         });
 
         etTemplateName = view.findViewById(R.id.etTemplateName);
@@ -85,7 +85,7 @@ public class CreateTemplate extends Fragment implements ExerciseListDialogFragme
         btnAddExercise.setOnClickListener(v -> onAddExerciseClick(exercises));
 
         // Set up RecyclerView
-        rvSelectedExercises.setAdapter(selectedExerciseAdapter);
+        rvSelectedExercises.setAdapter(selectedExerciseCreateAdapter);
         rvSelectedExercises.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         // Thêm divider giữa các item nếu muốn
@@ -115,7 +115,7 @@ public class CreateTemplate extends Fragment implements ExerciseListDialogFragme
 
         if (!isExisting) {
             selectedExercises.add(exercise);
-            selectedExerciseAdapter.notifyItemInserted(selectedExercises.size() - 1);
+            selectedExerciseCreateAdapter.notifyItemInserted(selectedExercises.size() - 1);
             // Scroll đến item vừa thêm
             rvSelectedExercises.smoothScrollToPosition(selectedExercises.size() - 1);
         } else {

@@ -58,7 +58,8 @@ public class TemplateDAO {
             String lastUsedStr = cursor.getString(cursor.getColumnIndex("last_used"));
             LocalDateTime lastUsed = null;
             if (lastUsedStr != null) {
-                lastUsed = LocalDateTime.parse(lastUsedStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                lastUsed = LocalDateTime.parse(lastUsedStr, formatter);
             }
             template = cursorToTemplate(cursor);
             template.setLastUsed(lastUsed);
@@ -193,6 +194,64 @@ public class TemplateDAO {
         return newRowId;
     }
 
+    public boolean updateTemplate(Template template, List<Exercise> selectedExercises) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+        boolean isSuccess = false;
+
+        db.beginTransaction();
+        try {
+            ContentValues values = new ContentValues();
+            values.put("name", template.getTitle());
+            values.put("description", template.getDescription());
+            values.put("visibility", template.getVisibility());
+            values.put("last_used", now.format(formatter));
+
+            // Update the template
+            int updatedRows = db.update("workout_templates",
+                    values,
+                    "id = ? AND user_id = ?",
+                    new String[]{String.valueOf(template.getId()), String.valueOf(template.getUserId())}
+            );
+
+            if (updatedRows > 0) {
+                // Delete existing exercises for this template
+                db.delete("template_exercises",
+                        "template_id = ?",
+                        new String[]{String.valueOf(template.getId())}
+                );
+
+                // Insert new exercises
+                if (!selectedExercises.isEmpty()) {
+                    for (int i = 0; i < selectedExercises.size(); i++) {
+                        ContentValues exerciseValues = new ContentValues();
+                        exerciseValues.put("template_id", template.getId());
+                        exerciseValues.put("exercise_id", selectedExercises.get(i).getId());
+                        exerciseValues.put("exercise_order", i + 1);
+
+                        long result = db.insert("template_exercises", null, exerciseValues);
+                        if (result == -1) {
+                            throw new Exception("Failed to insert exercise for template");
+                        }
+                    }
+                }
+
+                Log.d(TAG, "Updated template: " + template.getTitle());
+                db.setTransactionSuccessful();
+                isSuccess = true;
+            } else {
+                Log.e(TAG, "Failed to update template: " + template.getTitle());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error in updateTemplate: " + e.getMessage());
+            isSuccess = false;
+        } finally {
+            db.endTransaction();
+        }
+
+        return isSuccess;
+    }
 
     public List<Template> getExampleTemplates() {
         List<Template> templates = new ArrayList<>();

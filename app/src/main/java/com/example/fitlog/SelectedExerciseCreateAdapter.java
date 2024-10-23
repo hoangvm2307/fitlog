@@ -14,7 +14,7 @@ import com.example.fitlog.model.Exercise;
 
 import java.util.List;
 
-public class SelectedExerciseAdapter extends RecyclerView.Adapter<SelectedExerciseAdapter.ViewHolder> {
+public class SelectedExerciseCreateAdapter extends RecyclerView.Adapter<SelectedExerciseCreateAdapter.ViewHolder> {
     private List<Exercise> selectedExercises;
     private OnRemoveClickListener removeListener;
 
@@ -22,7 +22,7 @@ public class SelectedExerciseAdapter extends RecyclerView.Adapter<SelectedExerci
         void onRemoveClick(int position);
     }
 
-    public SelectedExerciseAdapter(List<Exercise> selectedExercises, OnRemoveClickListener listener) {
+    public SelectedExerciseCreateAdapter(List<Exercise> selectedExercises, OnRemoveClickListener listener) {
         this.selectedExercises = selectedExercises;
         this.removeListener = listener;
     }
@@ -31,7 +31,7 @@ public class SelectedExerciseAdapter extends RecyclerView.Adapter<SelectedExerci
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_template_exercise_create, parent, false); // Sử dụng layout của bạn
+                .inflate(R.layout.item_template_exercise_create, parent, false);
         return new ViewHolder(view);
     }
 
