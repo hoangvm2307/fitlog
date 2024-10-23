@@ -20,9 +20,11 @@ import com.example.fitlog.DAOs.ExerciseDAO;
 import com.example.fitlog.DAOs.TemplateDAO;
 import com.example.fitlog.DAOs.WorkoutDAO;
 import com.example.fitlog.model.Exercise;
+import com.example.fitlog.model.Template;
 import com.example.fitlog.model.Workout;
 import com.google.android.material.button.MaterialButton;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +33,10 @@ public class CreateTemplate extends Fragment implements ExerciseListDialogFragme
     private ExerciseDAO exerciseDAO;
     private List<Exercise> exercises;
     private List<Exercise> selectedExercises;
+
+    private EditText etTemplateName;
+    private EditText etNotes;
+
     private SelectedExerciseAdapter selectedExerciseAdapter;
     private RecyclerView rvSelectedExercises;
     private DatabaseHelper dbHelper;
@@ -70,8 +76,8 @@ public class CreateTemplate extends Fragment implements ExerciseListDialogFragme
             selectedExerciseAdapter.notifyItemRemoved(position);
         });
 
-        EditText etTemplateName = view.findViewById(R.id.etTemplateName);
-        EditText etNotes = view.findViewById(R.id.etNotes);
+        etTemplateName = view.findViewById(R.id.etTemplateName);
+        etNotes = view.findViewById(R.id.etNotes);
         MaterialButton btnSave = view.findViewById(R.id.btnSave);
         Button btnAddExercise = view.findViewById(R.id.btnAddExercises);
 
@@ -85,6 +91,8 @@ public class CreateTemplate extends Fragment implements ExerciseListDialogFragme
         // Thêm divider giữa các item nếu muốn
         rvSelectedExercises.addItemDecoration(new DividerItemDecoration(requireContext(),
                 DividerItemDecoration.VERTICAL));
+
+        btnSave.setOnClickListener(v -> saveNewTemplate());
 
         return view;
     }
@@ -116,15 +124,36 @@ public class CreateTemplate extends Fragment implements ExerciseListDialogFragme
         }
     }
 
-    // Thêm method để lưu template khi cần
-    private void saveTemplate() {
-        // Validate
-        if (selectedExercises.isEmpty()) {
-            Toast.makeText(requireContext(),
-                    "Please add at least one exercise", Toast.LENGTH_SHORT).show();
+    private void saveNewTemplate() {
+        String templateName = etTemplateName.getText().toString().trim();
+        String notes = etNotes.getText().toString().trim();
+
+        // Validate input
+        if (templateName.isEmpty()) {
+            etTemplateName.setError("Template name is required");
             return;
         }
 
-        // Logic lưu template với các exercise đã chọn
+        // Create new Template object
+        Template template = new Template(
+                0, // id will be set by SQLite
+                1, // assuming user_id is 1 for now - you should get this from your user session
+                templateName,
+                notes,
+                "public", // default visibility
+                LocalDateTime.now(),
+                null // last_used is initially null for new template
+        );
+
+        // Get TemplateDAO instance and insert template with exercises
+        TemplateDAO templateDAO = new TemplateDAO(dbHelper);
+        long templateId = templateDAO.insertTemplates(template, selectedExercises);
+
+        if (templateId != -1) {
+            Toast.makeText(requireContext(), "Template saved successfully", Toast.LENGTH_SHORT).show();
+            requireActivity().onBackPressed();
+        } else {
+            Toast.makeText(requireContext(), "Error saving template", Toast.LENGTH_SHORT).show();
+        }
     }
 }

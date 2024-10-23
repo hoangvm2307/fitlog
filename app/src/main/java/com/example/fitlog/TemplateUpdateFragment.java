@@ -77,7 +77,7 @@ public class TemplateUpdateFragment extends Fragment {
             listExercise.setLayoutManager(new LinearLayoutManager(requireContext()));
             listExercise.setAdapter(adapter);
         }
-        
+
         return view;
     }
 }

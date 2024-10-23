@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import com.example.fitlog.DatabaseHelper;
+import com.example.fitlog.model.Exercise;
 import com.example.fitlog.model.Template;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -132,6 +133,66 @@ public class TemplateDAO {
             cursor.close();
         }
     }
+
+    public long insertTemplates(Template template, List<Exercise> selectedExercises) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+        long newRowId = -1;
+
+        db.beginTransaction();
+        try {
+            ContentValues values = new ContentValues();
+            values.put("user_id", template.getUserId());
+            values.put("name", template.getTitle());
+            values.put("description", template.getDescription());
+            values.put("visibility", template.getVisibility());
+            values.put("created_at", now.format(formatter));
+            values.put("last_used", now.format(formatter));
+
+            // Check if the template already exists
+            Cursor cursor = db.query("workout_templates", new String[]{"id"},
+                    "user_id = ? AND name = ?",
+                    new String[]{String.valueOf(template.getUserId()), template.getTitle()},
+                    null, null, null);
+
+            if (cursor.getCount() == 0) {
+                newRowId = db.insert("workout_templates", null, values);
+                if (newRowId != -1) {
+                    // Insert exercises into template_exercises table
+                    if(!selectedExercises.isEmpty()){
+                        for (int i = 0; i < selectedExercises.size(); i++) {
+                            ContentValues exerciseValues = new ContentValues();
+                            exerciseValues.put("template_id", newRowId);
+                            exerciseValues.put("exercise_id", selectedExercises.get(i).getId());
+                            exerciseValues.put("exercise_order", i + 1);
+
+                            long result = db.insert("template_exercises", null, exerciseValues);
+                            if (result == -1) {
+                                throw new Exception("Failed to insert exercise for template");
+                            }
+                        }
+                    }
+
+                    Log.d(TAG, "Inserted template: " + template.getTitle());
+                    db.setTransactionSuccessful();
+                } else {
+                    Log.e(TAG, "Failed to insert template: " + template.getTitle());
+                }
+            } else {
+                Log.d(TAG, "Template already exists: " + template.getTitle());
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Log.e(TAG, "Error in insertTemplates: " + e.getMessage());
+            newRowId = -1;
+        } finally {
+            db.endTransaction();
+        }
+
+        return newRowId;
+    }
+
 
     public List<Template> getExampleTemplates() {
         List<Template> templates = new ArrayList<>();
