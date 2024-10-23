@@ -183,6 +183,14 @@ public class StartWorkoutSession extends Fragment {
                 .commit();
     }
 
+    private void openUpdateTemplate(int templateId) {
+        Fragment fragment = TemplateUpdateFragment.newInstance(templateId);
+        requireActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
     private List<Template> getUserTemplates() {
         // Fetch user templates from the database
         return templateDAO.getTemplatesByUserId(1); // Assuming user ID 1 for now
@@ -199,6 +207,7 @@ public class StartWorkoutSession extends Fragment {
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.action_edit) {
+                openUpdateTemplate(template.getId());
                 Toast.makeText(requireContext(), "Edit " + template.getTitle(), Toast.LENGTH_SHORT).show();
                 return true;
             } else if (itemId == R.id.action_duplicate) {
