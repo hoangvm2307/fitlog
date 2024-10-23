@@ -31,7 +31,7 @@ public class SelectedExerciseAdapter extends RecyclerView.Adapter<SelectedExerci
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_exercise, parent, false); // Sử dụng layout của bạn
+                .inflate(R.layout.item_template_exercise_create, parent, false); // Sử dụng layout của bạn
         return new ViewHolder(view);
     }
 

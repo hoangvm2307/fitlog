@@ -30,11 +30,6 @@ public class ExerciseListDialogFragment extends DialogFragment {
         void onExerciseSelected(Exercise exercise);
     }
 
-    // Interface for edit button callback
-    public interface OnEditClickListener {
-        void onEditClick();
-    }
-
     public ExerciseListDialogFragment() {}
 
     public void setOnExerciseSelectedListener(OnExerciseSelectedListener listener) {
@@ -44,7 +39,9 @@ public class ExerciseListDialogFragment extends DialogFragment {
     public static ExerciseListDialogFragment newInstance(List<Exercise> exercises) {
         ExerciseListDialogFragment fragment = new ExerciseListDialogFragment();
         Bundle args = new Bundle();
-        args.putParcelableArrayList(ARG_EXERCISE, new ArrayList<>(exercises));
+        if (exercises != null) {
+            args.putParcelableArrayList(ARG_EXERCISE, new ArrayList<>(exercises));
+        }
         fragment.setArguments(args);
         return fragment;
     }

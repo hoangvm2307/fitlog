@@ -79,12 +79,19 @@
         android:layout_marginTop="8dp" />
 
     <!-- Add Exercises Button -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSelectedExercises"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp" />
+
     <Button
         android:id="@+id/btnAddExercises"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:text="Add Exercises"
-        android:textAllCaps="false"
-        android:layout_marginTop="24dp" />
+        android:textAllCaps="false" />
 
 </LinearLayout >
