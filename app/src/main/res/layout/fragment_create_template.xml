@@ -67,13 +67,6 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <ImageButton
-            android:id="@+id/btnMore"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/more_vert_24px"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="More options" />
     </LinearLayout>
 
     <!-- Notes -->

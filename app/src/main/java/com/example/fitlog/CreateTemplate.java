@@ -22,18 +22,11 @@ import com.google.android.material.button.MaterialButton;
 
 import java.util.List;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link CreateTemplate#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class CreateTemplate extends Fragment {
-    private static final String ARG_TEMPLATE_ID = "template_id";
-    private int templateId;
-
-    private EditText etTemplateName, etNotes;
-    private Button addExercise;
-    private MaterialButton btnSave;
+    private ExerciseAdapter adapter;
+    private ExerciseDAO exerciseDAO;
+    private List<Exercise> exercises;
+    private DatabaseHelper dbHelper;
 
     public static CreateTemplate newInstance() {
         CreateTemplate fragment = new CreateTemplate();
@@ -50,8 +43,8 @@ public class CreateTemplate extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-        }
+        dbHelper = DatabaseHelper.getInstance(requireContext());
+        exerciseDAO = new ExerciseDAO(dbHelper);
     }
 
     @Override
@@ -60,6 +53,19 @@ public class CreateTemplate extends Fragment {
 
         AppCompatImageButton btnBack = view.findViewById(R.id.backButton);
         btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
+
+        EditText etTemplateName = view.findViewById(R.id.etTemplateName);
+        EditText etNotes = view.findViewById(R.id.etNotes);
+        Button btnAddExercise = view.findViewById(R.id.btnAddExercises);
+        MaterialButton btnSave = view.findViewById(R.id.btnSave);
+
+        exercises= exerciseDAO.getAllExercises();
+        btnAddExercise.setOnClickListener(v -> onAddExerciseClick(exercises));
         return view;
+    }
+
+    public void onAddExerciseClick(List<Exercise> exercises) {
+        ExerciseListDialogFragment listDialogFragmentFragment = ExerciseListDialogFragment.newInstance(exercises);
+        listDialogFragmentFragment.show(getParentFragmentManager(), "exercise_list");
     }
 }

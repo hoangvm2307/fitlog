@@ -20,10 +20,10 @@ import java.util.List;
 
 public class ExerciseListDialogFragment extends DialogFragment {
     private static final String ARG_EXERCISE = "exercises";
+
     private ArrayList<Exercise> exerciseList;
     private ExerciseAdapter adapter;
     private OnExerciseSelectedListener listener;
-    private OnEditClickListener editListener;
 
     // Interface for exercise selection callback
     public interface OnExerciseSelectedListener {
@@ -39,10 +39,6 @@ public class ExerciseListDialogFragment extends DialogFragment {
 
     public void setOnExerciseSelectedListener(OnExerciseSelectedListener listener) {
         this.listener = listener;
-    }
-
-    public void setOnEditClickListener(OnEditClickListener listener) {
-        this.editListener = listener;
     }
 
     public static ExerciseListDialogFragment newInstance(List<Exercise> exercises) {
@@ -71,7 +67,6 @@ public class ExerciseListDialogFragment extends DialogFragment {
         EditText searchEditText = view.findViewById(R.id.searchEditText);
         ImageButton closeButton = view.findViewById(R.id.closeButton);
         TextView exerciseNameTitle = view.findViewById(R.id.exerciseName);
-        TextView editButton = view.findViewById(R.id.editButton);
 
         // Set title
         exerciseNameTitle.setText("Select Exercise");
@@ -89,12 +84,6 @@ public class ExerciseListDialogFragment extends DialogFragment {
 
         // Set up click listeners
         closeButton.setOnClickListener(v -> dismiss());
-
-        editButton.setOnClickListener(v -> {
-            if (editListener != null) {
-                editListener.onEditClick();
-            }
-        });
 
         // Handle search functionality
         searchEditText.addTextChangedListener(new android.text.TextWatcher() {
