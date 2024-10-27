@@ -24,6 +24,7 @@ import com.example.fitlog.model.Template;
 import com.example.fitlog.DAOs.ExerciseDAO;
 import com.example.fitlog.DAOs.WorkoutDAO;
 import com.example.fitlog.DAOs.TemplateDAO;
+import com.example.fitlog.DAOs.ExerciseSetDAO;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -41,6 +42,7 @@ public class SessionDetails extends Fragment {
     private TemplateDAO templateDAO;
     private List<Exercise> exercises;
     private Workout currentWorkout;
+    private int workoutId;
 
     public static SessionDetails newInstance(int templateId) {
         SessionDetails fragment = new SessionDetails();
@@ -81,10 +83,17 @@ public class SessionDetails extends Fragment {
         exercisesRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         exercisesRecyclerView.setAdapter(adapter);
 
-        // Create a new workout
+        // Create a new workout and save it to the database immediately
         Date startTime = new Date();
         currentWorkout = new Workout(0, 1, templateId, startTime, null); // Assuming user_id is 1 for now
-        
+        workoutId = (int) workoutDAO.insertWorkout(currentWorkout);
+        if (workoutId == -1) {
+            Toast.makeText(requireContext(), "Error creating workout", Toast.LENGTH_SHORT).show();
+            requireActivity().getSupportFragmentManager().popBackStack();
+            return view;
+        }
+        currentWorkout.setId((int) workoutId);
+
         finishButton.setOnClickListener(v -> finishWorkout());
 
         return view;
@@ -96,17 +105,33 @@ public class SessionDetails extends Fragment {
 
     private void finishWorkout() {
         currentWorkout.setEndTime(new Date());
-        long workoutId = workoutDAO.insertWorkout(currentWorkout);
-        if (workoutId != -1) {
-            currentWorkout.setId((int) workoutId);  // Set the ID of the workout
-            workoutDAO.updateWorkout(currentWorkout);  // Update the workout with the end time
-            Toast.makeText(requireContext(), "Workout saved successfully", Toast.LENGTH_SHORT).show();
-            // Navigate back to the previous fragment
+
+        try {workoutDAO.updateWorkout(currentWorkout);
+
+            Toast.makeText(requireContext(), "Workout finished successfully", Toast.LENGTH_SHORT).show();
             requireActivity().getSupportFragmentManager().popBackStack();
-        } else {
-            Toast.makeText(requireContext(), "Error saving workout", Toast.LENGTH_SHORT).show();
+        } catch (Exception e){
+            Toast.makeText(requireContext(), "Error finishing workout", Toast.LENGTH_SHORT).show();
         }
     }
+
+    // private boolean saveAllSets() {
+    //     ExerciseSetDAO exerciseSetDAO = new ExerciseSetDAO(DatabaseHelper.getInstance(requireContext()));
+    //     boolean allSaved = true;
+
+    //     for (Exercise exercise : exercises) {
+    //         for (ExerciseSet set : exercise.getSets()) {
+    //             set.setSessionId(currentWorkout.getId());
+    //             long setId = exerciseSetDAO.createExerciseSet(set);
+    //             if (setId == -1) {
+    //                 allSaved = false;
+    //                 Log.e("SessionDetails", "Failed to save set for exercise: " + exercise.getName());
+    //             }
+    //         }
+    //     }
+
+    //     return allSaved;
+    // }
 
     private class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ExerciseViewHolder> {
         private List<Exercise> exercises;
@@ -162,12 +187,8 @@ public class SessionDetails extends Fragment {
                     if (i < previousSets.size()) {
                         ExerciseSet previousSet = previousSets.get(i);
                         previousSetTextView.setText(String.format("%.1f kg x %d", previousSet.getWeight(), previousSet.getReps()));
-                        weightEdit.setHint(String.format("%.1f", previousSet.getWeight()));
-                        repsEdit.setHint(String.valueOf(previousSet.getReps()));
                     } else {
                         previousSetTextView.setText("0 kg x 10");
-                        weightEdit.setHint("0");
-                        repsEdit.setHint("10");
                     }
 
                     setDoneCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -177,9 +198,10 @@ public class SessionDetails extends Fragment {
                             if (!weightStr.isEmpty() && !repsStr.isEmpty()) {
                                 float weight = Float.parseFloat(weightStr);
                                 int reps = Integer.parseInt(repsStr);
-                                ExerciseSet set = new ExerciseSet(0, currentWorkout.getId(), exercise.getId(), setNumber, weight, reps);
+                                ExerciseSet set = new ExerciseSet(0, workoutId, exercise.getId(), setNumber, weight, reps);
                                 currentWorkout.addExerciseSet(set);
-                                long setId = workoutDAO.insertExerciseSet(set);
+                                ExerciseSetDAO exerciseSetDAO = new ExerciseSetDAO(DatabaseHelper.getInstance(requireContext()));
+                                long setId = exerciseSetDAO.createExerciseSet(set);
                                 if (setId != -1) {
                                     Toast.makeText(requireContext(), "Set saved", Toast.LENGTH_SHORT).show();
                                 } else {
