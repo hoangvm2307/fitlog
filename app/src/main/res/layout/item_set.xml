@@ -25,19 +25,22 @@
         android:id="@+id/weightEdit"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
+        android:layout_marginRight="4dp"
+        android:background="@drawable/set_input_bg"
+        android:hint=""
         android:inputType="numberDecimal"
-        android:hint="kg"
-        android:textSize="16sp"
-        android:background="@android:color/transparent"/>
+        android:textAlignment="center"
+        android:textSize="16sp" />
 
     <EditText
         android:id="@+id/repsEdit"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
+        android:background="@drawable/set_input_bg"
+        android:hint=""
         android:inputType="number"
-        android:hint="10"
-        android:textSize="16sp"
-        android:background="@android:color/transparent"/>
+        android:textAlignment="center"
+        android:textSize="16sp" />
 
     <CheckBox
         android:id="@+id/setDoneCheckBox"
