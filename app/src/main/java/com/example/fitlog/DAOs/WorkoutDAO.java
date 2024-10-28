@@ -149,10 +149,43 @@ public class WorkoutDAO {
     }
 
     public Workout getWorkoutById(int workoutId) {
-        // Implementation to fetch a workout by its ID
-        // This should use the DatabaseHelper to query the database
-        // and return a Workout object
-        return null;
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Workout workout = null;
+
+        // Query to get workout session details
+        String query = "SELECT * FROM workout_sessions WHERE id = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(workoutId)});
+
+        if (cursor.moveToFirst()) {
+            int idIndex = cursor.getColumnIndex("id");
+            int userIdIndex = cursor.getColumnIndex("user_id");
+            int templateIdIndex = cursor.getColumnIndex("template_id");
+            int startTimeIndex = cursor.getColumnIndex("start_time");
+            int endTimeIndex = cursor.getColumnIndex("end_time");
+
+            if (idIndex != -1 && userIdIndex != -1 && templateIdIndex != -1 &&
+                    startTimeIndex != -1 && endTimeIndex != -1) {
+
+                int id = cursor.getInt(idIndex);
+                int userId = cursor.getInt(userIdIndex);
+                int templateId = cursor.getInt(templateIdIndex);
+                long startTime = cursor.getLong(startTimeIndex);
+                long endTime = cursor.getLong(endTimeIndex);
+
+                // Create new Workout object
+                workout = new Workout(id, userId, templateId, new Date(startTime), new Date(endTime));
+
+                // Get associated exercise sets
+                workout.setExerciseSets(exerciseSetDAO.getExerciseSetsForWorkout(id));
+            }
+        }
+        cursor.close();
+
+        if (workout == null) {
+            Log.e("WorkoutDAO", "No workout found for ID: " + workoutId);
+        }
+
+        return workout;
     }
 
     public String getWorkoutTemplateName(int templateId) {

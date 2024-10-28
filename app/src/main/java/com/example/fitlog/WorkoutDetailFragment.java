@@ -26,6 +26,8 @@ import java.util.ArrayList;
 public class WorkoutDetailFragment extends Fragment {
 
     private static final String TAG = "WorkoutDetailFragment";
+
+    private int workoutId;
     private TextView workoutTitle;
     private TextView workoutDateTime;
     private TextView workoutDuration;
@@ -48,6 +50,9 @@ public class WorkoutDetailFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            workoutId = getArguments().getInt(ARG_WORKOUT_ID);
+        }
         dbHelper = DatabaseHelper.getInstance(requireContext());
         workoutDAO = new WorkoutDAO(dbHelper);
     }
@@ -64,7 +69,6 @@ public class WorkoutDetailFragment extends Fragment {
         backArrow = view.findViewById(R.id.backArrow);
 
         if (getArguments() != null) {
-            int workoutId = getArguments().getInt(ARG_WORKOUT_ID);
             Workout workout = workoutDAO.getWorkoutById(workoutId);
             if (workout != null) {
                 displayWorkoutDetails(workout);

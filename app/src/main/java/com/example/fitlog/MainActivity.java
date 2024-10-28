@@ -61,7 +61,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public void navigateToWorkoutDetail(int workoutId) {
-        Fragment fragment = WorkoutDetailFragment.newInstance(workoutId);
+        WorkoutDetailFragment fragment = WorkoutDetailFragment.newInstance(workoutId);
         getSupportFragmentManager().beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .addToBackStack(null)
