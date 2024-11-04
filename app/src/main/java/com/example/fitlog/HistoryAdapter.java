@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.Collections;
 import com.example.fitlog.model.Workout;
 import com.example.fitlog.model.ExerciseSet;
 import com.example.fitlog.DatabaseHelper;
@@ -31,7 +32,25 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private DatabaseHelper dbHelper;
 
     public HistoryAdapter(Map<String, List<Workout>> workoutsByMonth, Context context) {
-        for (Map.Entry<String, List<Workout>> entry : workoutsByMonth.entrySet()) {
+        // Create a list of entries and sort them
+        List<Map.Entry<String, List<Workout>>> sortedEntries = new ArrayList<>(workoutsByMonth.entrySet());
+        
+        // Sort based on the date represented by the month string
+        Collections.sort(sortedEntries, (e1, e2) -> {
+            try {
+                SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
+                Date date1 = monthFormat.parse(e1.getKey());
+                Date date2 = monthFormat.parse(e2.getKey());
+                // Sort in reverse order (most recent first)
+                return date2.compareTo(date1);
+            } catch (Exception e) {
+                Log.e("HistoryAdapter", "Error parsing date", e);
+                return 0;
+            }
+        });
+
+        // Add sorted items to the list
+        for (Map.Entry<String, List<Workout>> entry : sortedEntries) {
             items.add(new MonthItem(entry.getKey(), entry.getValue().size()));
             items.addAll(entry.getValue());
         }

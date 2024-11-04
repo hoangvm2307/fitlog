@@ -58,7 +58,7 @@ public class HistoryFragment extends Fragment {
 
     private void loadWorkoutHistory() {
         Map<String, List<Workout>> workoutsByMonth = dbHelper.getWorkoutDAO().getWorkoutHistoryByMonth();
-        Log.d("HistoryFragment", "Workouts loaded: " + workoutsByMonth.size());
+        Log.d("HistoryFragment", "Workouts loaded: " + workoutsByMonth);
         HistoryAdapter adapter = new HistoryAdapter(workoutsByMonth, getContext());
         historyRecyclerView.setAdapter(adapter);
     }

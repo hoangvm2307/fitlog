@@ -52,7 +52,7 @@ public class StartWorkoutSession extends Fragment {
         View view = inflater.inflate(R.layout.activity_start_workout_session, container, false);
         View cardView = inflater.inflate(R.layout.template_item, container, false);
 
-        MaterialButton btnStartEmptyWorkout = view.findViewById(R.id.btnStartEmptyWorkout);
+//        MaterialButton btnStartEmptyWorkout = view.findViewById(R.id.btnStartEmptyWorkout);
         MaterialButton btnAddTemplate = view.findViewById(R.id.btnAddTemplate);
 
         List<Template> templates = getUserTemplates();
@@ -104,7 +104,7 @@ public class StartWorkoutSession extends Fragment {
 
             templateView.setOnClickListener(v -> openTemplateDetail(template.getId()));
 
-            btnStartEmptyWorkout.setOnClickListener(v -> openSessionFragment(template.getId()));
+//            btnStartEmptyWorkout.setOnClickListener(v -> openSessionFragment(template.getId()));
 
             templateContainer.addView(templateView);
         }
@@ -141,7 +141,8 @@ public class StartWorkoutSession extends Fragment {
             // Handle null lastUsed date
             LocalDateTime lastUsedDate = template.getLastUsed();
             if (lastUsedDate != null) {
-                lastUsed.setText(lastUsedDate.toString());
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
+                lastUsed.setText("Last used: " + lastUsedDate.format(formatter));
             } else {
                 lastUsed.setText("Never used");
             }

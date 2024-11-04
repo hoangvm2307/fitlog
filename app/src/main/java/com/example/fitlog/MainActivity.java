@@ -17,14 +17,14 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        try {
-            DatabaseHelper.getInstance(this).getWritableDatabase();
-            // Cơ sở dữ liệu đã được tạo thành công
-            Toast.makeText(this, "Cơ sở dữ liệu đã được khởi tạo", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            // Xử lý lỗi nếu có
-            Toast.makeText(this, "Lỗi khi khởi tạo cơ sở dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
+//        try {
+//            DatabaseHelper.getInstance(this).getWritableDatabase();
+//            // Cơ sở dữ liệu đã được tạo thành công
+//            Toast.makeText(this, "Cơ sở dữ liệu đã được khởi tạo", Toast.LENGTH_SHORT).show();
+//        } catch (Exception e) {
+//            // Xử lý lỗi nếu có
+//            Toast.makeText(this, "Lỗi khi khởi tạo cơ sở dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
+//        }
        
         DatabaseManager.getInstance(this).open();
         dbHelper = DatabaseHelper.getInstance(this);

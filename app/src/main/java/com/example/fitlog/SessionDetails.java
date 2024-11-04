@@ -16,6 +16,7 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.app.AlertDialog;
 
 import com.example.fitlog.model.Exercise;
 import com.example.fitlog.model.ExerciseSet;
@@ -26,9 +27,15 @@ import com.example.fitlog.DAOs.WorkoutDAO;
 import com.example.fitlog.DAOs.TemplateDAO;
 import com.example.fitlog.DAOs.ExerciseSetDAO;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Locale;
 
 public class SessionDetails extends Fragment {
     private static final String ARG_TEMPLATE_ID = "template_id";
@@ -42,7 +49,27 @@ public class SessionDetails extends Fragment {
     private TemplateDAO templateDAO;
     private List<Exercise> exercises;
     private Workout currentWorkout;
+    private Date startTime;
     private int workoutId;
+    private TextView workoutNameTextView;
+
+    // Add new field to store temporary exercise set data
+    private Map<Integer, List<PendingSet>> pendingSets = new HashMap<>();
+
+    // Create a class to hold pending set data
+    private static class PendingSet {
+        int exerciseId;
+        int setNumber;
+        float weight;
+        int reps;
+
+        PendingSet(int exerciseId, int setNumber, float weight, int reps) {
+            this.exerciseId = exerciseId;
+            this.setNumber = setNumber;
+            this.weight = weight;
+            this.reps = reps;
+        }
+    }
 
     public static SessionDetails newInstance(int templateId) {
         SessionDetails fragment = new SessionDetails();
@@ -62,6 +89,7 @@ public class SessionDetails extends Fragment {
         workoutDAO = new WorkoutDAO(dbHelper);
         exerciseDAO = new ExerciseDAO(dbHelper);
         templateDAO = new TemplateDAO(dbHelper);
+        startTime = new Date();
     }
 
     @Override
@@ -72,27 +100,19 @@ public class SessionDetails extends Fragment {
         chronometer = view.findViewById(R.id.chronometer);
         finishButton = view.findViewById(R.id.finishButton);
         exercisesRecyclerView = view.findViewById(R.id.exercisesRecyclerView);
+        workoutNameTextView = view.findViewById(R.id.workoutNameTextView);
+        workoutNameTextView.setText(templateDAO.getTemplateById(templateId).getTitle());
 
         // Start the chronometer
         chronometer.setBase(SystemClock.elapsedRealtime());
         chronometer.start();
 
         // Set up the RecyclerView
+
         exercises = getExercisesForTemplate(templateId);
         ExerciseAdapter adapter = new ExerciseAdapter(exercises);
         exercisesRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         exercisesRecyclerView.setAdapter(adapter);
-
-        // Create a new workout and save it to the database immediately
-        Date startTime = new Date();
-        currentWorkout = new Workout(0, 1, templateId, startTime, null); // Assuming user_id is 1 for now
-        workoutId = (int) workoutDAO.insertWorkout(currentWorkout);
-        if (workoutId == -1) {
-            Toast.makeText(requireContext(), "Error creating workout", Toast.LENGTH_SHORT).show();
-            requireActivity().getSupportFragmentManager().popBackStack();
-            return view;
-        }
-        currentWorkout.setId((int) workoutId);
 
         finishButton.setOnClickListener(v -> finishWorkout());
 
@@ -104,34 +124,81 @@ public class SessionDetails extends Fragment {
     }
 
     private void finishWorkout() {
-        currentWorkout.setEndTime(new Date());
+        // Check if there are any pending sets
+        boolean hasAnySets = false;
+        for (List<PendingSet> sets : pendingSets.values()) {
+            if (!sets.isEmpty()) {
+                hasAnySets = true;
+                break;
+            }
+        }
 
-        try {workoutDAO.updateWorkout(currentWorkout);
+        if (!hasAnySets) {
+            // Show confirmation dialog
+            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("No Sets Recorded")
+                .setMessage("You haven't recorded any sets. Do you want to cancel this workout?")
+                .setPositiveButton("Cancel", (dialog, which) -> {
+                    requireActivity().getSupportFragmentManager().popBackStack();
+                })
+                .setNegativeButton("Return", null)
+                .show();
+            return;
+        }
 
-            Toast.makeText(requireContext(), "Workout finished successfully", Toast.LENGTH_SHORT).show();
+        // Rest of the existing finishWorkout logic
+        Date currentEndTime = new Date();
+        long durationInMillis = currentEndTime.getTime() - startTime.getTime();
+        
+        Date endTime;
+        if (durationInMillis < 60000) {
+            endTime = new Date(startTime.getTime() + 60000);
+        } else {
+            endTime = currentEndTime;
+        }
+
+        Workout workout = new Workout(0, 1, templateId, startTime, endTime);
+        
+        try {
+            // Save workout
+            int workoutId = (int) workoutDAO.insertWorkout(workout);
+            if (workoutId == -1) {
+                throw new Exception("Failed to save workout");
+            }
+
+            // Convert Date to LocalDateTime for template update
+            LocalDateTime localEndTime = endTime.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+            // Update template's lastUsed timestamp
+            templateDAO.updateTemplateLastUsed(templateId, localEndTime);
+
+            // Save exercise sets
+            ExerciseSetDAO exerciseSetDAO = new ExerciseSetDAO(DatabaseHelper.getInstance(requireContext()));
+            for (List<PendingSet> sets : pendingSets.values()) {
+                for (PendingSet pendingSet : sets) {
+                    ExerciseSet set = new ExerciseSet(
+                        0, 
+                        workoutId,
+                        pendingSet.exerciseId,
+                        pendingSet.setNumber,
+                        pendingSet.weight,
+                        pendingSet.reps
+                    );
+                    long setId = exerciseSetDAO.createExerciseSet(set);
+                    if (setId == -1) {
+                        throw new Exception("Failed to save exercise set");
+                    }
+                }
+            }
+
+            Toast.makeText(requireContext(), "Workout saved successfully", Toast.LENGTH_SHORT).show();
             requireActivity().getSupportFragmentManager().popBackStack();
-        } catch (Exception e){
-            Toast.makeText(requireContext(), "Error finishing workout", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
-
-    // private boolean saveAllSets() {
-    //     ExerciseSetDAO exerciseSetDAO = new ExerciseSetDAO(DatabaseHelper.getInstance(requireContext()));
-    //     boolean allSaved = true;
-
-    //     for (Exercise exercise : exercises) {
-    //         for (ExerciseSet set : exercise.getSets()) {
-    //             set.setSessionId(currentWorkout.getId());
-    //             long setId = exerciseSetDAO.createExerciseSet(set);
-    //             if (setId == -1) {
-    //                 allSaved = false;
-    //                 Log.e("SessionDetails", "Failed to save set for exercise: " + exercise.getName());
-    //             }
-    //         }
-    //     }
-
-    //     return allSaved;
-    // }
 
     private class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ExerciseViewHolder> {
         private List<Exercise> exercises;
@@ -170,9 +237,16 @@ public class SessionDetails extends Fragment {
             void bind(Exercise exercise) {
                 exerciseName.setText(exercise.getName());
                 setsContainer.removeAllViews();
-                List<ExerciseSet> previousSets = workoutDAO.getLastWorkoutSets(exercise.getId());
-                int setCount = Math.max(previousSets.size(), 3);
+                
+                List<ExerciseSet> previousSets = workoutDAO.getLastTemplateExerciseSets(templateId, exercise.getId());
+                Collections.sort(previousSets, (a, b) -> Integer.compare(a.getSetNumber(), b.getSetNumber()));
+                int setCount = previousSets.isEmpty() ? 1 : previousSets.size();
 
+                List<CheckBox> checkBoxes = new ArrayList<>();
+                List<EditText> weightEdits = new ArrayList<>();
+                List<EditText> repsEdits = new ArrayList<>();
+
+                // Add initial sets in correct order
                 for (int i = 0; i < setCount; i++) {
                     View setView = LayoutInflater.from(requireContext()).inflate(R.layout.item_set, setsContainer, false);
                     TextView setNumberTextView = setView.findViewById(R.id.setNumberTextView);
@@ -181,36 +255,78 @@ public class SessionDetails extends Fragment {
                     EditText repsEdit = setView.findViewById(R.id.repsEdit);
                     CheckBox setDoneCheckBox = setView.findViewById(R.id.setDoneCheckBox);
 
-                    final int setNumber = i + 1;
+                    int setNumber = i + 1;  // Sets are 1-based
                     setNumberTextView.setText(String.valueOf(setNumber));
 
                     if (i < previousSets.size()) {
                         ExerciseSet previousSet = previousSets.get(i);
                         previousSetTextView.setText(String.format("%.1f kg x %d", previousSet.getWeight(), previousSet.getReps()));
-                    } else {
-                        previousSetTextView.setText("0 kg x 10");
-                    }
+                        
+                        // Pre-fill the weight and reps inputs with previous values
+                        weightEdit.setText(String.format(Locale.getDefault(), "%.1f", previousSet.getWeight()));
+                        repsEdit.setText(String.valueOf(previousSet.getReps()));
+                    } 
+                     else {
+                         previousSetTextView.setText("0 kg x 0");
+//                         weightEdit.setText("0");
+//                         repsEdit.setText("0");
+                     }
 
+                    weightEdits.add(weightEdit);
+                    repsEdits.add(repsEdit);
+                    checkBoxes.add(setDoneCheckBox);
+
+                    // Disable all sets except the first one initially
+                    boolean isFirstSet = setNumber == 1;
+                    setDoneCheckBox.setEnabled(isFirstSet);
+                    weightEdit.setEnabled(isFirstSet);
+                    repsEdit.setEnabled(isFirstSet);
+
+                    final int finalSetNumber = setNumber;
                     setDoneCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                         if (isChecked) {
                             String weightStr = weightEdit.getText().toString();
                             String repsStr = repsEdit.getText().toString();
+                            
                             if (!weightStr.isEmpty() && !repsStr.isEmpty()) {
                                 float weight = Float.parseFloat(weightStr);
                                 int reps = Integer.parseInt(repsStr);
-                                ExerciseSet set = new ExerciseSet(0, workoutId, exercise.getId(), setNumber, weight, reps);
-                                currentWorkout.addExerciseSet(set);
-                                ExerciseSetDAO exerciseSetDAO = new ExerciseSetDAO(DatabaseHelper.getInstance(requireContext()));
-                                long setId = exerciseSetDAO.createExerciseSet(set);
-                                if (setId != -1) {
-                                    Toast.makeText(requireContext(), "Set saved", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(requireContext(), "Error saving set", Toast.LENGTH_SHORT).show();
+                                
+                                if (!pendingSets.containsKey(exercise.getId())) {
+                                    pendingSets.put(exercise.getId(), new ArrayList<>());
                                 }
+                                pendingSets.get(exercise.getId()).add(
+                                    new PendingSet(exercise.getId(), finalSetNumber, weight, reps)
+                                );
+
+                                // Enable next set if it exists
+                                if (finalSetNumber < checkBoxes.size()) {
+                                    checkBoxes.get(finalSetNumber).setEnabled(true);
+                                    weightEdits.get(finalSetNumber).setEnabled(true);
+                                    repsEdits.get(finalSetNumber).setEnabled(true);
+                                }
+
+                                weightEdit.setEnabled(false);
+                                repsEdit.setEnabled(false);
                             } else {
                                 Toast.makeText(requireContext(), "Please enter weight and reps", Toast.LENGTH_SHORT).show();
                                 setDoneCheckBox.setChecked(false);
                             }
+                        } else {
+                            if (pendingSets.containsKey(exercise.getId())) {
+                                List<PendingSet> sets = pendingSets.get(exercise.getId());
+                                sets.removeIf(set -> set.setNumber == finalSetNumber);
+                            }
+
+                            // Disable all subsequent sets
+                            for (int j = finalSetNumber; j < checkBoxes.size(); j++) {
+                                checkBoxes.get(j).setEnabled(false);
+                                weightEdits.get(j).setEnabled(false);
+                                repsEdits.get(j).setEnabled(false);
+                            }
+
+                            weightEdit.setEnabled(true);
+                            repsEdit.setEnabled(true);
                         }
                     });
 
@@ -221,8 +337,75 @@ public class SessionDetails extends Fragment {
                 Button addSetButton = new Button(requireContext());
                 addSetButton.setText("+ Add Set");
                 addSetButton.setOnClickListener(v -> {
-                    // Logic to add a new set
-                    // This could be similar to the code above, but with a new set number
+                    int newSetNumber = checkBoxes.size() + 1;
+                    
+                    View setView = LayoutInflater.from(requireContext()).inflate(R.layout.item_set, setsContainer, false);
+                    TextView setNumberTextView = setView.findViewById(R.id.setNumberTextView);
+                    TextView previousSetTextView = setView.findViewById(R.id.previousSetTextView);
+                    EditText weightEdit = setView.findViewById(R.id.weightEdit);
+                    EditText repsEdit = setView.findViewById(R.id.repsEdit);
+                    CheckBox setDoneCheckBox = setView.findViewById(R.id.setDoneCheckBox);
+
+                    setNumberTextView.setText(String.valueOf(newSetNumber));
+                    previousSetTextView.setText("0 kg x 0");
+
+                    // For new sets, use the values from the last set if available
+                     if (!previousSets.isEmpty()) {
+                         ExerciseSet lastSet = previousSets.get(previousSets.size() - 1);
+                         weightEdit.setText(String.format(Locale.getDefault(), "%.1f", lastSet.getWeight()));
+                         repsEdit.setText(String.valueOf(lastSet.getReps()));
+                     }
+//                     else {
+//                         weightEdit.setText("0");
+//                         repsEdit.setText("0");
+//                     }
+
+                    weightEdits.add(weightEdit);
+                    repsEdits.add(repsEdit);
+                    checkBoxes.add(setDoneCheckBox);
+
+                    // Enable only if previous set is completed
+                    boolean previousSetDone = newSetNumber == 1 || 
+                        (newSetNumber > 1 && checkBoxes.get(newSetNumber - 2).isChecked());
+                    setDoneCheckBox.setEnabled(previousSetDone);
+                    weightEdit.setEnabled(previousSetDone);
+                    repsEdit.setEnabled(previousSetDone);
+
+                    setDoneCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                        if (isChecked) {
+                            String weightStr = weightEdit.getText().toString();
+                            String repsStr = repsEdit.getText().toString();
+                            
+                            if (!weightStr.isEmpty() && !repsStr.isEmpty()) {
+                                float weight = Float.parseFloat(weightStr);
+                                int reps = Integer.parseInt(repsStr);
+                                
+                                if (!pendingSets.containsKey(exercise.getId())) {
+                                    pendingSets.put(exercise.getId(), new ArrayList<>());
+                                }
+                                pendingSets.get(exercise.getId()).add(
+                                    new PendingSet(exercise.getId(), newSetNumber, weight, reps)
+                                );
+
+                                weightEdit.setEnabled(false);
+                                repsEdit.setEnabled(false);
+                            } else {
+                                Toast.makeText(requireContext(), "Please enter weight and reps", Toast.LENGTH_SHORT).show();
+                                setDoneCheckBox.setChecked(false);
+                            }
+                        } else {
+                            if (pendingSets.containsKey(exercise.getId())) {
+                                List<PendingSet> sets = pendingSets.get(exercise.getId());
+                                sets.removeIf(set -> set.setNumber == newSetNumber);
+                            }
+
+                            weightEdit.setEnabled(true);
+                            repsEdit.setEnabled(true);
+                        }
+                    });
+
+                    // Add the new set view before the "Add Set" button
+                    setsContainer.addView(setView, setsContainer.getChildCount() - 1);
                 });
                 setsContainer.addView(addSetButton);
             }

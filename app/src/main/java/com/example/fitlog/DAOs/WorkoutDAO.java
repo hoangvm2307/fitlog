@@ -199,14 +199,15 @@ public class WorkoutDAO {
         values.put("user_id", workout.getUserId());
         values.put("template_id", workout.getTemplateId());
         values.put("start_time", workout.getStartTime().getTime());
-        return db.insert("workout_sessions", null, values);  // Changed from "workouts" to "workout_sessions"
+        values.put("end_time", workout.getEndTime().getTime());
+        return db.insert("workout_sessions", null, values);
     }
 
     public void updateWorkout(Workout workout) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("end_time", workout.getEndTime().getTime());
-        db.update("workout_sessions", values, "id = ?", new String[]{String.valueOf(workout.getId())});  // Changed from "workouts" to "workout_sessions"
+        db.update("workout_sessions", values, "id = ?", new String[]{String.valueOf(workout.getId())});  
     }
 
     public void insertSet(ExerciseSet set) {
@@ -259,5 +260,46 @@ public class WorkoutDAO {
         values.put("weight", set.getWeight());
         values.put("reps", set.getReps());
         return db.insert("exercise_sets", null, values);
+    }
+
+    public List<ExerciseSet> getLastTemplateExerciseSets(int templateId, int exerciseId) {
+        List<ExerciseSet> sets = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        // Get sets from the most recent workout session that used this template
+        String query = "SELECT es.* FROM exercise_sets es " +
+                       "JOIN workout_sessions ws ON es.session_id = ws.id " +
+                       "WHERE ws.template_id = ? " +
+                       "AND es.exercise_id = ? " +
+                       "AND ws.start_time = (" +
+                       "    SELECT MAX(start_time) " +
+                       "    FROM workout_sessions " +
+                       "    WHERE template_id = ?" +
+                       ") " +
+                       "ORDER BY es.set_number ASC";
+
+        Cursor cursor = db.rawQuery(query, 
+            new String[]{
+                String.valueOf(templateId), 
+                String.valueOf(exerciseId),
+                String.valueOf(templateId)
+            });
+
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex("id"));
+                int sessionId = cursor.getInt(cursor.getColumnIndex("session_id"));
+                int exerciseIdFromDb = cursor.getInt(cursor.getColumnIndex("exercise_id"));
+                int setNumber = cursor.getInt(cursor.getColumnIndex("set_number"));
+                float weight = cursor.getFloat(cursor.getColumnIndex("weight"));
+                int reps = cursor.getInt(cursor.getColumnIndex("reps"));
+
+                ExerciseSet set = new ExerciseSet(id, sessionId, exerciseIdFromDb, setNumber, weight, reps);
+                sets.add(set);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return sets;
     }
 }

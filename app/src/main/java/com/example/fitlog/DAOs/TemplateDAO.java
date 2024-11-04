@@ -7,10 +7,13 @@ import android.util.Log;
 import com.example.fitlog.DatabaseHelper;
 import com.example.fitlog.model.Exercise;
 import com.example.fitlog.model.Template;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class TemplateDAO {
     private DatabaseHelper dbHelper;
@@ -328,6 +331,19 @@ public class TemplateDAO {
         }
 
         return new Template(id, userId, name, description, visibility, createdAt, lastUsed);
+    }
+
+    public void updateTemplateLastUsed(int templateId, Date lastUsed) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        
+        // Format the date as "yyyy-MM-dd HH:mm:ss"
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        String formattedDate = sdf.format(lastUsed);
+        
+        values.put("last_used", formattedDate);
+        
+        db.update("template_exercises", values, "id = ?", new String[]{String.valueOf(templateId)});
     }
 
     // Add more methods as needed (update, delete, etc.)
